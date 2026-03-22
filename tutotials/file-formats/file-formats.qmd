@@ -1,0 +1,763 @@
+---
+title: "File formats"
+subtitle: "CSCI 4623 — Digital Forensics"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "Tasks"
+    number-sections: false
+    code-copy: true
+    theme: cosmo
+    css: tsk-styles.css
+---
+
+## Overview
+
+This walkthrough accompanies the File Formats lecture module.
+You will examine a curated set of fabricated sample files using the same tools
+an examiner would reach for during triage and analysis: `file`, `exiftool`,
+`xxd`, `pngcheck`, `binwalk`, `unzip`, and a set of Python helper scripts.
+
+Each task targets a specific format family or forensic technique.
+The sample files contain planted artifacts — metadata fields, hidden chunks,
+embedded archives, and timestamp inconsistencies — designed to surface the
+concepts from lecture in a controlled setting.
+
+**Estimated time:** 60–90 minutes
+
+**Prerequisites:** Run `setup_formats_lab.sh` before beginning.
+
+---
+
+## Task 0 — Verify setup and run first-pass identification
+
+### Motivation
+
+Before examining any individual file, an examiner surveys the entire file set
+using automated identification tools. This establishes a baseline and immediately
+flags any format anomalies.
+
+### 0.1 Verify the lab directory
+
+```bash
+ls -lh ~/formats-lab/
+```
+
+You should see 15 files. If any are missing, re-run `setup_formats_lab.sh`.
+
+### 0.2 Run `file` across all files
+
+```bash
+cd ~/formats-lab
+file -i *
+```
+
+Expected output (order may vary):
+
+```
+archive.zip:    application/zip; charset=binary
+audio.mp3:      audio/mpeg; charset=binary
+document.pdf:   application/pdf; charset=binary
+firmware.bin:   image/jpeg; charset=binary
+graphic.png:    image/png; charset=binary
+legacy.doc:     application/msword; charset=binary
+mismatch1.pdf:  image/jpeg; charset=binary
+mismatch2.docx: application/zip; charset=binary
+normal.elf:     application/x-executable; charset=binary
+normal.exe:     application/x-dosexec; charset=binary
+packed.elf:     application/x-executable; charset=binary
+packed.exe:     application/x-dosexec; charset=binary
+photo.jpg:      image/jpeg; charset=binary
+report.docx:    application/zip; charset=binary
+video.mp4:      video/mp4; charset=binary
+```
+
+### 0.3 Identify the extension mismatches
+
+Examine the output above. Two files have extensions that contradict their
+detected MIME type:
+
+- `mismatch1.pdf` — reported as `image/jpeg`, not `application/pdf`
+- `mismatch2.docx` — reported as `application/zip` (ZIP, not OOXML)
+
+Note that `report.docx` is *also* reported as `application/zip` — this is
+correct, because OOXML files are ZIP archives. The distinction is that
+`mismatch2.docx` is a *raw* ZIP with no OOXML internal structure.
+
+Confirm with:
+
+```bash
+unzip -l mismatch2.docx | head -5
+unzip -l report.docx | head -5
+```
+
+The `report.docx` listing will show `word/`, `docProps/`, and `_rels/`
+directories characteristic of OOXML. The `mismatch2.docx` listing will show
+the raw `data/` and `readme.txt` entries from a plain ZIP archive.
+
+### 0.4 Run TrID on the mismatched files
+
+```bash
+trid mismatch1.pdf
+trid mismatch2.docx
+```
+
+TrID returns a ranked list of candidate formats with confidence percentages.
+Record the top result for each file and compare with what `file` reported.
+
+---
+
+## Task 1 — JPEG dissection
+
+### Motivation
+
+JPEG files carry more forensic information than their compressed pixel data
+suggests. The EXIF APP1 segment embeds device identity, capture timestamps,
+GPS coordinates, and an independent thumbnail that may preserve a pre-edit
+version of the image.
+
+### 1.1 Confirm the JPEG structure with `xxd`
+
+```bash
+xxd photo.jpg | head -4
+```
+
+Expected output (first two bytes are the JPEG SOI marker; the next two are the APP1 marker):
+
+```
+00000000: ffd8 ffe1 xxxx 4578 6966 0000 ...     ......Exif..
+```
+
+- `FF D8` — Start of Image (SOI) — 2-byte marker, no length field
+- `FF E1` — APP1 marker (EXIF segment follows); the `xx xx` after it is the segment length
+
+Confirm the End of Image marker at the file's tail:
+
+```bash
+xxd photo.jpg | tail -2
+```
+
+The last two bytes should be `FF D9` (EOI marker).
+
+### 1.2 Extract all EXIF metadata with `exiftool`
+
+```bash
+exiftool photo.jpg
+```
+
+Locate and record:
+
+| Field | Value |
+|---|---|
+| `Make` | |
+| `Camera Model Name` | |
+| `Software` | |
+| `Date/Time Original` | |
+| `GPS Latitude` | |
+| `GPS Longitude` | |
+| `GPS Altitude` | |
+
+Note the `Software` field — it identifies `Adobe Photoshop`, while
+`Date/Time Original` reflects the original capture time (`2024:03:15`).
+The `DateTime` field (the last-modified-by-software timestamp) is later
+(`2024:04:02`) — 18 days after capture — confirming the file was
+post-processed after the original shoot.
+
+### 1.3 Extract the embedded thumbnail
+
+```bash
+exiftool -ThumbnailImage -b photo.jpg > thumbnail.jpg
+file -i thumbnail.jpg
+```
+
+The `-b` flag suppresses the tag name, writing only the raw binary data.
+Confirm the output is a valid JPEG.
+
+### 1.4 Compare thumbnail with main image
+
+```bash
+exiftool -ImageSize photo.jpg
+exiftool -ThumbnailImageSize photo.jpg 2>/dev/null || exiftool -ImageSize thumbnail.jpg
+```
+
+Open both files in an image viewer or use `identify` (ImageMagick) if available:
+
+```bash
+identify photo.jpg thumbnail.jpg 2>/dev/null
+```
+
+The thumbnail is a different color from the main image — it was generated
+from the original pre-edit version and not updated when the main image was
+modified. This thumbnail-vs-main discrepancy is a forensic indicator of
+post-capture manipulation.
+
+### 1.5 Use the helper script
+
+```bash
+python3 ~/formats-lab/scripts/inspect_jpeg.py photo.jpg
+```
+
+The script confirms the SOI marker, prints the IFD0, Exif, and GPS IFDs,
+and extracts the thumbnail to `photo_thumbnail.jpg`.
+
+---
+
+## Task 2 — PNG chunk analysis
+
+### Motivation
+
+PNG uses a chunked structure where ancillary chunks carry arbitrary metadata.
+These chunks are invisible to image viewers but trivially readable with the
+right tools. They can carry planted metadata, operator notes, or hidden data.
+
+### 2.1 Identify all chunks with `pngcheck`
+
+```bash
+pngcheck -v graphic.png
+```
+
+`pngcheck` validates CRCs and lists every chunk with its offset and length.
+Look for any chunk types beyond `IHDR`, `IDAT`, and `IEND`.
+
+You should see at least one `iTXt` chunk and one `tEXt` chunk in the listing.
+
+### 2.2 Run the helper script
+
+```bash
+python3 ~/formats-lab/scripts/inspect_png.py graphic.png
+```
+
+Expected output includes a chunk inventory table followed by the decoded
+text chunk contents. Record:
+
+- The `iTXt` keyword and text value
+- The `tEXt` keyword and text value
+
+The `iTXt` chunk contains operator metadata planted during fabrication:
+case number, operator email, and tool name. In a real investigation, this
+content would be recorded as evidence and its source investigated.
+
+### 2.3 Examine the raw bytes
+
+Locate the `iTXt` marker directly:
+
+```bash
+xxd graphic.png | grep -A2 "6954 5874"
+```
+
+`69 54 58 74` is the ASCII encoding of `iTXt`.
+The four bytes before the type field are the chunk length (big-endian).
+
+---
+
+## Task 3 — PDF forensics
+
+### Motivation
+
+PDF files embed document metadata that persists across format conversions and
+printing. Incremental updates allow a PDF to be edited without replacing the
+original content, creating a layered edit history visible at the byte level.
+
+### 3.1 Extract metadata with `exiftool`
+
+```bash
+exiftool document.pdf
+```
+
+Record the following fields:
+
+| Field | Value |
+|---|---|
+| `Author` | |
+| `Creator` | |
+| `Producer` | |
+| `Create Date` | |
+| `Modify Date` | |
+
+Note that `Creator` identifies the application that produced the original
+document (`Microsoft Word`), while `Producer` identifies the conversion
+tool (`Acrobat Distiller`). These are separate provenance indicators.
+
+### 3.2 Identify the incremental update
+
+```bash
+grep -c "%%EOF" document.pdf
+```
+
+A value of `2` confirms two `%%EOF` markers — the original file and one
+incremental update appended afterward.
+
+Locate the `startxref` values:
+
+```bash
+grep -n "startxref" document.pdf
+```
+
+Two `startxref` entries will appear. The second (later) one belongs to the
+incremental update. The trailer of the update contains a `/Prev` key pointing
+back to the original xref table offset.
+
+### 3.3 Inspect the update object
+
+```bash
+grep -A4 "Incremental update" document.pdf
+```
+
+The appended annotation object contains the reviewer's name and timestamp —
+information added after the document was originally authored.
+Both the original author (`Margaret Chen`) and the reviewer (`D. Torres`)
+are now recoverable from the file.
+
+### 3.4 Scan for active content indicators
+
+`pdfid.py` was staged to `~/formats-lab/pdftools/` by the setup script:
+
+```bash
+python3 ~/formats-lab/pdftools/pdfid.py document.pdf
+```
+
+`pdfid.py` counts occurrences of active-content keywords. For `document.pdf`
+the counts for `/JS`, `/JavaScript`, `/Launch`, and `/OpenAction` should all
+be zero — this is a benign document.
+
+---
+
+## Task 4 — Office document metadata
+
+### Motivation
+
+Both legacy OLE-based Office formats (`.doc`) and modern OOXML formats
+(`.docx`) embed rich author and revision metadata that survives format
+conversion. OOXML's ZIP container allows direct inspection of its XML
+parts without specialized tools.
+
+### 4.1 OOXML: inspect with `exiftool`
+
+```bash
+exiftool report.docx
+```
+
+Record:
+
+| Field | Value |
+|---|---|
+| `Creator` | |
+| `Last Modified By` | |
+| `Create Date` | |
+| `Modify Date` | |
+| `Revision Number` | |
+
+### 4.2 OOXML: inspect the ZIP structure
+
+```bash
+unzip -l report.docx
+```
+
+Identify the `docProps/core.xml` and `docProps/app.xml` parts.
+
+### 4.3 Read core.xml directly
+
+```bash
+unzip -p report.docx docProps/core.xml | xmllint --format -
+```
+
+The `dc:creator` field holds the original author. The `cp:lastModifiedBy`
+field holds the account that last saved the file. These may differ — here
+they identify two separate individuals (`James Wilson` and `Sarah Okonkwo`),
+establishing an edit chain.
+
+### 4.4 Read app.xml
+
+```bash
+unzip -p report.docx docProps/app.xml | xmllint --format -
+```
+
+`app.xml` exposes the application name and version used to save the file,
+plus the company name if set in the authoring application's profile.
+
+### 4.5 OLE: inspect legacy.doc with the helper script
+
+```bash
+python3 ~/formats-lab/scripts/inspect_ole.py legacy.doc
+```
+
+The script lists all streams in the OLE directory tree, then dumps the
+`SummaryInformation` property set. Compare the `Author` and `Last saved by`
+fields with those extracted from `report.docx` in step 4.1 — they derive
+from the same source document and should match.
+
+Note that the `App name` field will show `LibreOffice` rather than
+`Microsoft Word`. This is expected: the `.doc` file was produced by
+converting `report.docx` with LibreOffice, so the conversion tool's
+name appears in the OLE metadata rather than the original authoring
+application. In a real investigation, an `App name` value that does
+not match the stated document provenance is worth noting.
+
+---
+
+## Task 5 — Archive forensics
+
+### Motivation
+
+ZIP archives expose metadata even when their contents are encrypted or
+inaccessible. The EOCD comment field, per-entry timestamps, and the
+central directory structure are all available without decryption and
+can carry intelligence about the archive's origin and handling.
+
+### 5.1 List archive contents with `zipinfo`
+
+```bash
+zipinfo -v archive.zip
+```
+
+`zipinfo -v` (verbose) shows per-entry compression method, timestamps,
+CRC-32 values, and the EOCD comment field if present.
+
+Locate the `Archive comment` section at the bottom of the output.
+Record the comment text — it contains a case number, collection date,
+and examiner name.
+
+### 5.2 Examine timestamps
+
+From the `zipinfo -v` output, note the timestamp fields per entry.
+Each entry carries two timestamp representations:
+
+- **MS-DOS timestamp** (2-second resolution) — in the local file header
+  and central directory; always present
+- **Unix extended timestamp (`UT` extra field)** — 32-bit Unix epoch value
+  in both the local header (mtime + atime) and central directory (mtime only);
+  provides full Unix-precision timing and identifies the creating platform
+
+Compare the staggered mtime values across entries — they differ by 17 seconds
+each, reflecting the order in which files were added to the archive.
+
+### 5.3 Scan firmware.bin with `binwalk`
+
+```bash
+binwalk --signature firmware.bin
+```
+
+Expected output:
+
+```
+DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+0             0x0             JPEG image data, JFIF standard 1.01
+<offset>      <hex>           Zip archive data, at least v2.0 to extract,
+                              name: config.txt
+<offset>      <hex>           Zip archive data, at least v2.0 to extract,
+                              name: keys/device.key
+<offset>      <hex>           End of Zip archive, footer length: 22
+```
+
+`binwalk` identified both the JPEG at offset 0 and a ZIP archive appended
+after the JPEG's EOI marker. The file is valid as a JPEG — any image viewer
+will display it correctly — but the appended ZIP data is invisible to those tools.
+
+### 5.4 Extract the embedded archive
+
+```bash
+binwalk --extract firmware.bin
+ls _firmware.bin.extracted/
+```
+
+`binwalk` creates an extraction directory. Examine the recovered files:
+
+```bash
+cat _firmware.bin.extracted/*/config.txt
+```
+
+The config file contains a password hash and device credentials — content
+that would be invisible to a cursory file inspection.
+
+### 5.5 Entropy plot
+
+```bash
+binwalk --entropy firmware.bin
+```
+
+The entropy plot will show a relatively flat region (the JPEG compressed data)
+followed by a second region corresponding to the appended ZIP. Both regions
+have similar entropy profiles since both use deflate compression.
+
+---
+
+## Task 6 — ELF binary forensics
+
+### Motivation
+
+ELF binaries carry identification artifacts that survive stripping and
+can attribute a binary to a specific compiler version, build environment,
+and even a specific project path. Entropy analysis exposes packing or
+encryption that defeats static string extraction.
+
+### 6.1 Basic identification
+
+```bash
+file normal.elf
+file packed.elf
+```
+
+Both files will be identified as ELF executables. Note whether `file`
+reports each as `stripped` or `not stripped`.
+
+### 6.2 Section inventory with `readelf`
+
+```bash
+readelf -S --wide normal.elf | head -30
+readelf -S --wide packed.elf | head -30
+```
+
+Compare the section tables. `normal.elf` will have many sections
+including `.symtab`, `.strtab`, and `.debug_*` sections.
+`packed.elf` will have a minimal section table — a hallmark of packed binaries.
+
+### 6.3 Build ID and notes
+
+```bash
+readelf -n normal.elf
+```
+
+The `GNU` note section contains the Build ID — a SHA-1 or MD5 hash of
+the binary's content at build time. This identifier is stable across
+identical builds and can link multiple samples to the same build.
+
+### 6.4 Compiler version from .comment
+
+```bash
+readelf -p .comment normal.elf
+```
+
+The `.comment` section contains a null-terminated string naming the compiler
+and version used to produce the binary. This narrows the build environment
+to a specific GCC release and distribution.
+
+Try the same on `packed.elf`:
+
+```bash
+readelf -p .comment packed.elf 2>&1
+```
+
+A packed binary typically has no `.comment` section — the packer replaces
+the original section table with its own stub.
+
+### 6.5 Entropy analysis
+
+```bash
+binwalk -E normal.elf
+binwalk -E packed.elf
+```
+
+`normal.elf` will show varying entropy: lower in `.rodata` and data sections,
+moderate in `.text` (compiled code). `packed.elf` will show uniformly high
+entropy (approaching 8.0 bits/byte) across its primary load segment — the
+signature of compressed or encrypted payload.
+
+### 6.6 Helper script
+
+```bash
+python3 ~/formats-lab/scripts/inspect_elf.py normal.elf
+```
+
+The script prints the ELF identification fields, section inventory,
+Build ID, and `.comment` content in a single pass.
+
+---
+
+## Task 7 — PE binary forensics
+
+### Motivation
+
+PE files embed compilation metadata, version resources, and import tables
+that fingerprint the build environment and reveal capability. The compile
+timestamp, PDB path, and Rich header are artifacts that persist even when
+other metadata is stripped.
+
+### 7.1 Basic identification
+
+```bash
+file normal.exe
+file packed.exe
+```
+
+Both should be identified as PE32+ (or PE32) executables.
+
+### 7.2 Section inventory and entropy
+
+```bash
+binwalk -E normal.exe
+binwalk -E packed.exe
+```
+
+`normal.exe` will show characteristic section entropy: moderate for `.text`,
+lower for `.rdata` and `.data`. `packed.exe` will show a single
+high-entropy segment — the compressed original binary.
+
+### 7.3 Inspect the PE with the helper script
+
+```bash
+python3 ~/formats-lab/scripts/inspect_pe.py normal.exe
+```
+
+Record:
+
+| Field | Value |
+|---|---|
+| Machine type | |
+| Compile timestamp | |
+| Entry point RVA | |
+| Sections | |
+| Imports | |
+
+### 7.4 Compare import tables
+
+```bash
+python3 ~/formats-lab/scripts/inspect_pe.py normal.exe 2>&1 | grep -A20 "Imports"
+python3 ~/formats-lab/scripts/inspect_pe.py packed.exe 2>&1 | grep -A20 "Imports"
+```
+
+`normal.exe` will list its imported DLLs and functions (`user32.dll`,
+`kernel32.dll`, etc.). `packed.exe` will show a minimal import table —
+often just the loader stub's imports (`LoadLibrary`, `GetProcAddress`) —
+since the real imports are resolved at runtime by the unpacker.
+
+---
+
+## Task 8 — MP4 and MP3 metadata
+
+### Motivation
+
+Video and audio files from mobile devices embed GPS coordinates, device
+identity, and encoder information in their container metadata. This data
+survives transcoding poorly — comparing encoder strings and timestamps
+can reveal whether a file is an original recording or a re-encoded copy.
+
+### 8.1 MP4: full metadata dump
+
+```bash
+exiftool video.mp4
+```
+
+Locate and record:
+
+| Field | Value |
+|---|---|
+| `Create Date` | |
+| `Modify Date` | |
+| `GPS Latitude` | |
+| `GPS Longitude` | |
+| `GPS Altitude` | |
+| `Encoder` / `Author` | |
+
+Note the `Create Date` format — MP4 stores timestamps as seconds since
+1904-01-01 (the Mac epoch); `exiftool` converts this to a readable date.
+
+### 8.2 Compare MP4 timestamps with file system timestamps
+
+```bash
+stat video.mp4
+exiftool -CreateDate -ModifyDate video.mp4
+```
+
+The file system `mtime` reflects when the file was last written on this
+system (during lab setup). The `CreateDate` embedded in the `mvhd` atom
+reflects the metadata injected at creation time. In a real investigation,
+a discrepancy between these timestamps indicates the file was copied or
+transferred from another system.
+
+### 8.3 MP3: ID3 tag dump
+
+```bash
+exiftool audio.mp3
+```
+
+Locate:
+
+| Field | Value |
+|---|---|
+| `Title` | |
+| `Artist` | |
+| `Album` | |
+| `Year` | |
+| `Comment` | |
+| `Picture MIME Type` | |
+| `Picture Type` | |
+
+Note that `exiftool` reports the presence of an embedded picture (`APIC` frame)
+with a MIME type of `image/jpeg`. This is an independent JPEG artifact embedded
+inside the MP3 file.
+
+### 8.4 Extract the embedded APIC image
+
+```bash
+exiftool -Picture -b audio.mp3 > embedded_cover.jpg
+file -i embedded_cover.jpg
+exiftool embedded_cover.jpg
+```
+
+Confirm the extracted file is a valid JPEG. In an investigation, this
+embedded image would be examined as an independent artifact — it may carry
+its own EXIF metadata, GPS data, or content of evidentiary value.
+
+### 8.5 Verify the URL frame
+
+```bash
+exiftool -UserDefinedURL audio.mp3 2>/dev/null || \
+    python3 -c "
+from mutagen.id3 import ID3
+tags = ID3('audio.mp3')
+for key in tags:
+    if key.startswith('W'):
+        print(key, ':', tags[key])
+"
+```
+
+The `WXXX` frame contains a URL reference. In real-world evidence, URL frames
+have been used to link files to web resources, accounts, or distribution platforms.
+
+---
+
+## Summary
+
+Work through the table below to consolidate the artifacts recovered across all tasks.
+
+| File | Format | Key artifact recovered |
+|---|---|---|
+| `photo.jpg` | JPEG | GPS coordinates; thumbnail-main mismatch |
+| `graphic.png` | PNG | Hidden `iTXt` chunk: operator, case number |
+| `document.pdf` | PDF | Author chain; incremental update with reviewer |
+| `report.docx` | OOXML | Creator / last-modified-by chain; revision 7 |
+| `legacy.doc` | OLE/CFB | SummaryInformation author fields |
+| `archive.zip` | ZIP | EOCD comment: case number, examiner, date |
+| `firmware.bin` | JPEG+ZIP | Appended ZIP with config file and key |
+| `normal.elf` | ELF | Build ID; compiler version in `.comment` |
+| `packed.elf` | ELF (packed) | High entropy; stripped section table |
+| `normal.exe` | PE | Compile timestamp; imports; version resource |
+| `packed.exe` | PE (packed) | Minimal imports; high-entropy `.text` |
+| `video.mp4` | MP4 | GPS atom; encoder; Mac epoch timestamps |
+| `audio.mp3` | MP3 | ID3v2 tags; embedded JPEG (APIC); URL frame |
+| `mismatch1.pdf` | JPEG (renamed) | Extension contradiction detected by `file` |
+| `mismatch2.docx` | ZIP (renamed) | Extension contradiction; raw ZIP, not OOXML |
+
+### Questions for review
+
+1. `document.pdf` has two `%%EOF` markers. What does each one delimit,
+   and what forensic significance does the structure have?
+
+2. The `Software` field in `photo.jpg` names Adobe Photoshop, while
+   `DateTimeOriginal` predates any plausible editing session.
+   What two conclusions can you draw, and what additional evidence
+   would strengthen each?
+
+3. `packed.elf` shows near-uniform high entropy across its primary segment.
+   Does this confirm the binary is malicious? What additional steps would
+   you take before drawing that conclusion?
+
+4. `firmware.bin` is identified as `image/jpeg` by both `file` and most
+   image viewers. Describe the mechanism that allows the appended ZIP to
+   coexist with the valid JPEG structure without corrupting it.
+
+5. The `archive.zip` EOCD comment field contains 89 bytes of text.
+   What is the maximum length of this field, and what constraint
+   governs that limit?

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTFS Forensics with The Sleuth Kit — CSCI 4623 — Digital Forensics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:        #1a2744;
+  --navy-mid:    #243460;
+  --navy-light:  #2e3f72;
+  --blue:        #2563eb;
+  --blue-hover:  #1d4ed8;
+  --blue-light:  #dbeafe;
+  --blue-xlight: #eff6ff;
+  --sidebar-w:   260px;
+  --topbar-h:    58px;
+  --text:        #1e293b;
+  --text-muted:  #64748b;
+  --bg-page:     #ffffff;
+  --bg-sidebar:  #f8fafc;
+  --bg-code:     #0d1526;
+  --bg-code-inline: #f1f5f9;
+  --border:      #e2e8f0;
+  --border-mid:  #cbd5e1;
+  --green:       #16a34a;
+  --green-light: #f0fdf4;
+  --amber:       #d97706;
+  --amber-light: #fffbeb;
+  --font-ui:     'Exo 2', 'Segoe UI', sans-serif;
+  --font-body:   'Open Sans', 'Segoe UI', sans-serif;
+  --font-code:   'Consolas', 'Cascadia Code', 'Fira Mono', monospace;
+  --radius:      8px;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--bg-page);
+  overflow-x: hidden;
+  font-size: 15px;
+}
+
+/* ── Top Bar ───────────────────────────────────────────────────── */
+#topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  background: linear-gradient(100deg, var(--navy) 0%, var(--navy-mid) 60%, var(--navy-light) 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  z-index: 200;
+  gap: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+#topbar .course-tag {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-right: 14px;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+#topbar .tutorial-title {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  padding-left: 14px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#topbar .spacer { flex: 1; }
+
+#topbar .meta {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────── */
+#sidebar {
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+}
+
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-track { background: transparent; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
+
+#step-list {
+  list-style: none;
+  padding: 12px 0 40px;
+}
+
+#step-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 16px 8px 14px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+  user-select: none;
+}
+
+#step-list li:hover { background: #eef2fa; }
+
+#step-list li.active {
+  background: var(--blue-light);
+  border-left-color: var(--blue);
+}
+
+#step-list li.active .step-num {
+  background: var(--blue);
+  color: #fff;
+}
+
+#step-list li.active .step-lbl {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  transition: background 0.12s;
+}
+
+.step-lbl {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  transition: color 0.12s;
+}
+
+/* ── Main ──────────────────────────────────────────────────────── */
+#main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--topbar-h);
+  min-height: calc(100vh - var(--topbar-h));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* ── Step View ─────────────────────────────────────────────────── */
+#step-view {
+  width: 100%;
+  max-width: 860px;
+  padding: 48px 60px 20px;
+  flex: 1;
+  animation: fadeIn 0.18s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Step header */
+.step-hdr {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--border);
+}
+
+.step-badge {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(26,39,68,0.3);
+}
+
+.step-hdr h1 {
+  font-family: var(--font-ui);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.2;
+}
+
+/* ── Content Typography ────────────────────────────────────────── */
+#step-view h2 {
+  font-family: var(--font-ui);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 36px 0 10px;
+}
+
+#step-view h3 {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--navy-light);
+  margin: 28px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#step-view p {
+  line-height: 1.78;
+  margin-bottom: 14px;
+  color: #2d3748;
+}
+
+#step-view ul, #step-view ol {
+  margin: 8px 0 18px 22px;
+}
+
+#step-view li {
+  line-height: 1.7;
+  margin-bottom: 5px;
+}
+
+#step-view strong { font-weight: 600; color: var(--navy); }
+
+/* Inline code */
+#step-view code {
+  font-family: var(--font-code);
+  font-size: 0.83em;
+  background: var(--bg-code-inline);
+  color: var(--navy);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* Code blocks */
+#step-view pre {
+  background: var(--bg-code);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin: 12px 0 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+#step-view pre code {
+  font-family: var(--font-code);
+  font-size: 0.815rem;
+  color: #cdd9f0;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1.65;
+  white-space: pre;
+  border-radius: 0;
+}
+
+/* Explanation panel — replaces closeread sticky */
+.expl {
+  background: var(--blue-xlight);
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 16px 20px;
+  margin: 0 0 28px;
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: #1e3a5f;
+}
+
+.expl p { color: #1e3a5f; margin-bottom: 10px; }
+.expl p:last-child { margin-bottom: 0; }
+.expl code { background: #dbeafe; color: #1e3a5f; border-color: #93c5fd; }
+.expl strong { color: var(--navy); }
+
+/* Callout boxes */
+.callout {
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin: 20px 0;
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
+.callout p { margin-bottom: 8px; }
+.callout p:last-child { margin-bottom: 0; }
+
+.callout.try-it {
+  background: var(--green-light);
+  border-left: 4px solid var(--green);
+  color: #14532d;
+}
+.callout.try-it strong { color: var(--green); }
+.callout.try-it code  { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+.callout.capstone {
+  background: var(--amber-light);
+  border-left: 4px solid var(--amber);
+  color: #78350f;
+}
+.callout.capstone strong { color: var(--amber); }
+
+.callout.info {
+  background: var(--blue-xlight);
+  border-left: 4px solid var(--blue);
+  color: #1e3a5f;
+}
+.callout.info code { background: #dbeafe; color: #1e3a5f; border-color: #93c5fd; }
+
+/* Duration badge on intro */
+.duration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--blue-light);
+  color: var(--blue);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #bfdbfe;
+}
+
+.duration-badge::before {
+  content: '⏱';
+  font-size: 0.85em;
+}
+
+/* Placeholder box for missing/incomplete sections */
+.placeholder {
+  border: 2px dashed var(--border-mid);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 20px 0;
+  background: #fafafa;
+}
+
+/* forensic-path inline span */
+.forensic-path {
+  font-family: var(--font-code);
+  font-size: 0.9em;
+  background: var(--bg-code-inline);
+  color: var(--navy);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* ── Bottom Nav ────────────────────────────────────────────────── */
+#nav-bar {
+  width: 100%;
+  max-width: 860px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 60px 48px;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+}
+
+.nav-btn {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 2px solid var(--blue);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.01em;
+  background: none;
+}
+
+.nav-btn.prev { background: #fff; color: var(--blue); }
+.nav-btn.prev:hover { background: var(--blue-light); }
+
+.nav-btn.next { background: var(--blue); color: #fff; }
+.nav-btn.next:hover { background: var(--blue-hover); border-color: var(--blue-hover); }
+
+.nav-btn.hidden { visibility: hidden; pointer-events: none; }
+
+.nav-step-counter {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ─────────────────────────────────────────────────── -->
+<header id="topbar">
+  <span class="course-tag">CSCI 4623 — Digital Forensics</span>
+  <span class="tutorial-title">NTFS Forensics with The Sleuth Kit</span>
+  <span class="spacer"></span>
+  <span class="meta" id="topbar-meta"></span>
+</header>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────── -->
+<nav id="sidebar">
+  <ol id="step-list"></ol>
+</nav>
+
+<!-- ── Main ────────────────────────────────────────────────────── -->
+<main id="main">
+  <div id="step-view"></div>
+  <div id="nav-bar">
+    <button class="nav-btn prev hidden" id="btn-prev">&#8592; Back</button>
+    <span class="nav-step-counter" id="step-counter"></span>
+    <button class="nav-btn next" id="btn-next">Next &#8594;</button>
+  </div>
+</main>
+
+<!-- ── Step Data (injected by qmd2codelab.py) ──────────────────── -->
+<script>
+const STEPS = [
+  {
+    "title": "Overview",
+    "content": "<p><strong>Image:</strong> <code>ntfs_lab.img</code> (created by\n<code>setup_ntfs_lab.sh</code>)</p>\n<p><strong>Tools:</strong> TSK (<code>fsstat</code>, <code>fls</code>,\n<code>istat</code>, <code>icat</code>, <code>blkstat</code>,\n<code>blkcat</code>, <code>ffind</code>, <code>ifind</code>,\n<code>tsk_recover</code>), <code>analyzeMFT</code></p>\n<p><strong>Assumed knowledge:</strong> FAT and ext filesystem forensics,\nTSK command basics (<code>fls</code>, <code>istat</code>,\n<code>icat</code>), partition analysis with <code>mmls</code>.</p>\n<h3 id=\"case-background\">Case background</h3>\n<p>Your team has received a forensic image of workstation WS-042,\nassigned to contractor J. Smith (badge C-1847). Smith’s access was\nrevoked at 03:00 UTC on 2024-03-11 after network monitoring flagged\nrepeated outbound connections to 192.168.1.88, an IP address outside the\ncorporate network. Preliminary evidence suggests that sensitive HR data\n— including a full payroll export — was copied to an external host in\nthe two hours preceding revocation.</p>\n<p>Your task is to examine the NTFS volume for corroborating evidence:\nconfirm what files were present, how they were stored, whether any\ntraces were deliberately concealed, and what the filesystem’s own\njournals record about activity in that window.</p>\n<h3 id=\"how-ntfs-differs-from-ext-and-fat\">How NTFS differs from ext and\nFAT</h3>\n<table>\n<colgroup>\n<col style=\"width: 25%\" />\n<col style=\"width: 25%\" />\n<col style=\"width: 25%\" />\n<col style=\"width: 25%\" />\n</colgroup>\n<thead>\n<tr class=\"header\">\n<th>Concept</th>\n<th>FAT</th>\n<th>ext</th>\n<th>NTFS</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>File metadata</td>\n<td>Directory entry</td>\n<td>Inode</td>\n<td>MFT entry</td>\n</tr>\n<tr class=\"even\">\n<td>Metadata location</td>\n<td>In directory</td>\n<td>Inode table</td>\n<td><code>$MFT</code> file</td>\n</tr>\n<tr class=\"odd\">\n<td>Small file data</td>\n<td>Cluster</td>\n<td>Block</td>\n<td>Resident <code>$DATA</code> (in MFT)</td>\n</tr>\n<tr class=\"even\">\n<td>Named data streams</td>\n<td>No</td>\n<td>No</td>\n<td>Yes (<code>$DATA:streamname</code>)</td>\n</tr>\n<tr class=\"odd\">\n<td>Change journal</td>\n<td>No</td>\n<td><code>$LogFile</code> (limited)</td>\n<td><code>$UsnJrnl</code> (full history)</td>\n</tr>\n<tr class=\"even\">\n<td>Timestamps per file</td>\n<td>2</td>\n<td>3</td>\n<td>8 (4 in <code>$STANDARD_INFORMATION</code> + 4 in\n<code>$FILE_NAME</code>)</td>\n</tr>\n</tbody>\n</table>\n<p>Every object in NTFS — including the filesystem metadata itself — is\na file with a record in the <code>$MFT</code>. System files occupy MFT\nentries 0–11 and are named with a leading <code>$</code>.</p>\n<hr />"
+  },
+  {
+    "title": "Task 0 · Setup and Orientation",
+    "content": "<p>Before examining individual files, establish the geometry of the\nvolume: sector size, cluster size, MFT location, and total addressable\nrange. These values anchor every subsequent address you will encounter —\na cluster number only means something once you know how large a cluster\nis and where they start.</p>\n<h3 id=\"identify-the-image\">0.1 — Identify the image</h3>\n<pre class=\"bash\"><code>file ntfs_lab.img</code></pre>\n<pre><code>ntfs_lab.img: DOS/MBR boot sector, code offset 0x52+2,\n  OEM-ID &quot;NTFS    &quot;, sectors/cluster 8, Media descriptor 0xf8,\n  heads 255, hidden sectors 63, dos &lt; 4.0 BootSector (0x80),\n  FAT (1Y bit by descriptor); NTFS, sectors 262143,\n  $MFT start cluster 4, $MFTMirr start cluster 16383,\n  bytes/RecordSegment 2^(-1*-10), clusters/index block 1,\n  serial number 0wa4b2c3d1e0f5</code></pre>\n<p><code>file</code> reads the NTFS boot sector (<code>$Boot</code>, MFT\nentry 7) and surfaces the key layout parameters. Note that this image\nhas no partition table — it is a bare volume image, acquired starting at\nthe first byte of the NTFS filesystem rather than at the disk’s MBR.\nThis is the common case when imaging individual volumes rather than\nwhole disks; there are no partition offsets to account for when passing\nthe image to TSK tools.</p>\n<h3 id=\"filesystem-statistics\">0.2 — Filesystem statistics</h3>\n<pre class=\"bash\"><code>fsstat ntfs_lab.img</code></pre>\n<pre><code>FILE SYSTEM INFORMATION\n--------------------------------------------\nFile System Type: NTFS\nVolume Serial Number: WA4B2C3D1E0F5678\nOEM Name: NTFS\nVolume Name: WS042-JSMITH\nVersion: Windows XP\n\nMETADATA INFORMATION\n--------------------------------------------\nFirst Cluster of MFT: 4\nFirst Cluster of MFT Mirror: 16383\nSize of MFT Entries: 1024 bytes\nSize of Index Records: 4096 bytes\nRange: 0 - 95\nRoot Directory: 5\n\nCONTENT INFORMATION\n--------------------------------------------\nSector Size: 512\nCluster Size: 4096\nTotal Cluster Range: 0 - 32767</code></pre>\n<p>Work through the output in two groups. The metadata section tells you\nwhere the MFT lives (cluster 4) and how large each record is (1024\nbytes). <code>Range: 0 - 95</code> means 96 MFT entries have been\nallocated on this volume. The content section tells you the addressable\nunit for data: a 4096-byte cluster spanning 8 sectors. Every block\naddress you see in run lists and <code>blkstat</code> output is a\ncluster number; multiply by 4096 to get a byte offset into the\nimage.</p>\n<p>The volume label <code>WS042-JSMITH</code> confirms this is Smith’s\nworkstation image. In ext, the inode table location is a fixed block\naddress recorded in the superblock. In NTFS, there is no separate inode\ntable — the MFT is itself a file whose run list (stored in its own\n<code>$DATA</code> attribute) tells TSK where MFT records are on\ndisk.</p>\n<hr />"
+  },
+  {
+    "title": "Task 1 · NTFS Metadata Files",
+    "content": "<p>In ext, <code>fsstat</code> points you to a fixed inode table. In\nNTFS, the equivalent metadata is distributed across a set of special\nfiles, each with a reserved MFT entry number. Before examining\nindividual user files, identify these system files and understand what\neach one contains — they will surface repeatedly as you trace\nevidence.</p>\n<h3 id=\"list-the-root-directory\">1.1 — List the root directory</h3>\n<pre class=\"bash\"><code>fls ntfs_lab.img</code></pre>\n<pre><code>d/d 5-144-4:    .\nd/d 5-144-4:    ..\nd/- 0-144-1:    $MFT\nd/- 1-144-1:    $MFTMirr\nd/- 2-144-1:    $LogFile\nd/- 3-144-1:    $Volume\nd/- 4-144-1:    $AttrDef\nd/d 5-144-4:    $OrphanFiles\nd/- 6-144-1:    $Bitmap\nd/- 7-144-1:    $Boot\nd/- 8-144-1:    $BadClus\nd/- 9-144-1:    $Secure\nd/- 10-144-1:   $UpCase\nd/- 11-144-1:   $Extend\nd/d 26:         System\nd/d 33:         Users</code></pre>\n<p>The <code>d/-</code> prefix on system files means TSK recognises them\nas allocated but non-browsable — they are presented as if they were\ndirectory entries in the root, even though most are not directories.\nTheir MFT entry numbers are fixed by the NTFS specification:\n<code>$MFT</code> is always entry 0, <code>$Bitmap</code> always entry\n6, and so on.</p>\n<h3 id=\"examine-mft-entry-0\">1.2 — Examine $MFT (entry 0)</h3>\n<pre class=\"bash\"><code>istat ntfs_lab.img 0</code></pre>\n<pre><code>MFT Entry Header Values:\nEntry: 0        Sequence: 1\n$LogFile Sequence Number: 5765169\nAllocated File\nLinks: 1\n\n$STANDARD_INFORMATION Attribute Values:\nFlags: Hidden, System\n...\n\nAttributes:\nType: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72\nType: $FILE_NAME (48-1)               Name: N/A   Resident   size: 80\nType: $DATA (128-2)                   Name: $Data  Non-Resident  size: 98304\n  3584 3585 3586 ... (24 clusters)\nType: $BITMAP (176-3)                 Name: N/A   Non-Resident  size: 16</code></pre>\n<p>The <code>$DATA</code> attribute of <code>$MFT</code> <em>is</em> the\nMFT — 96 entries × 1024 bytes = 98,304 bytes, stored in the cluster run\nbeginning at cluster 3584. The <code>$BITMAP</code> attribute tracks\nwhich of those 96 entries are currently allocated. This is worth pausing\non: the structure that describes all files on the volume is itself\ndescribed as an entry within that same structure.</p>\n<h3 id=\"pull-the-volume-name-from-volume\">1.3 — Pull the volume name\nfrom $Volume</h3>\n<pre class=\"bash\"><code>istat ntfs_lab.img 3</code></pre>\n<pre><code>Attributes:\nType: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72\nType: $FILE_NAME (48-1)               Name: N/A   Resident   size: 78\nType: $VOLUME_NAME (96-2)             Name: N/A   Resident   size: 24\nType: $VOLUME_INFORMATION (112-3)     Name: N/A   Resident   size: 12\nType: $DATA (128-4)                   Name: $Data  Resident   size: 0</code></pre>\n<p>The <code>$VOLUME_NAME</code> attribute (type 96) holds the label as\na UTF-16LE string. Extract it with\n<code>icat ntfs_lab.img 3-96-2 | strings</code>. The\n<code>$VOLUME_INFORMATION</code> attribute records the NTFS version and\na flags field that can indicate a dirty (uncleanly unmounted) volume —\nrelevant because a dirty flag suggests the system crashed or was powered\noff without a clean shutdown, which affects journal integrity.</p>\n<h3 id=\"system-file-reference-table\">1.4 — System file reference\ntable</h3>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Entry</th>\n<th>Name</th>\n<th>Forensic relevance</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>0</td>\n<td><code>$MFT</code></td>\n<td>Master File Table — source of all metadata</td>\n</tr>\n<tr class=\"even\">\n<td>1</td>\n<td><code>$MFTMirr</code></td>\n<td>First 4 MFT entries mirrored for recovery</td>\n</tr>\n<tr class=\"odd\">\n<td>2</td>\n<td><code>$LogFile</code></td>\n<td>Metadata redo/undo journal</td>\n</tr>\n<tr class=\"even\">\n<td>3</td>\n<td><code>$Volume</code></td>\n<td>Volume name, NTFS version, dirty flag</td>\n</tr>\n<tr class=\"odd\">\n<td>4</td>\n<td><code>$AttrDef</code></td>\n<td>Attribute type definitions</td>\n</tr>\n<tr class=\"even\">\n<td>5</td>\n<td><code>.</code></td>\n<td>Root directory</td>\n</tr>\n<tr class=\"odd\">\n<td>6</td>\n<td><code>$Bitmap</code></td>\n<td>One bit per cluster — allocated vs. free</td>\n</tr>\n<tr class=\"even\">\n<td>7</td>\n<td><code>$Boot</code></td>\n<td>Boot sector (first 8 KB of volume)</td>\n</tr>\n<tr class=\"odd\">\n<td>9</td>\n<td><code>$Secure</code></td>\n<td>Security descriptors</td>\n</tr>\n<tr class=\"even\">\n<td>11</td>\n<td><code>$Extend</code></td>\n<td>Directory containing <code>$UsnJrnl</code>, <code>$Quota</code>,\n<code>$ObjId</code></td>\n</tr>\n</tbody>\n</table>\n<hr />"
+  },
+  {
+    "title": "Task 2 · MFT Entry Anatomy",
+    "content": "<p>An MFT entry is NTFS’s equivalent of an inode, but where an inode is\na fixed-length structure with named fields, an MFT entry is a variable-\nlength sequence of typed attributes. The attribute type code determines\nwhat the attribute contains; the resident/non-resident flag determines\nwhere the content lives. Learning to read <code>istat</code> output as\nan attribute list — rather than as a flat set of fields — is the core\nskill for NTFS forensics.</p>\n<h3 id=\"recursive-listing\">2.1 — Recursive listing</h3>\n<pre class=\"bash\"><code>fls -r ntfs_lab.img</code></pre>\n<pre><code>d/d 26:         System\nd/d 27:         System/Logs\nr/r 38-128-1:   Users/jsmith/Documents/incident_summary.txt\nr/r 39-128-1:   Users/jsmith/Documents/payroll_export.csv\nr/r 40-128-1:   Users/jsmith/Documents/contracts_index.txt\nr/r 41-128-1:   Users/jsmith/Desktop/project_notes.txt\nr/r 42-128-1:   Users/jsmith/Downloads/VPN_client_setup.exe\nr/r 42-128-4:   Users/jsmith/Downloads/VPN_client_setup.exe:Zone.Identifier\nr/r 43-128-1:   Users/jsmith/AppData/Roaming/sync_config.ini\nr/r 43-128-4:   Users/jsmith/AppData/Roaming/sync_config.ini:credentials\n...</code></pre>\n<p>The inode address format <code>42-128-4</code> encodes three values:\nMFT entry 42, attribute type 128 (<code>$DATA</code>), attribute\ninstance ID 4. Two entries sharing an MFT number — <code>42-128-1</code>\nand <code>42-128-4</code> — belong to the same MFT record. This is how\nNTFS Alternate Data Streams appear in TSK output. You will examine both\nADS entries in detail in Task 4.</p>\n<h3 id=\"inspect-incident_summary.txt\">2.2 — Inspect\nincident_summary.txt</h3>\n<pre class=\"bash\"><code>istat ntfs_lab.img 38</code></pre>\n<pre><code>MFT Entry Header Values:\nEntry: 38        Sequence: 1\n$LogFile Sequence Number: 6291612\nAllocated File\nLinks: 1\n\n$STANDARD_INFORMATION Attribute Values:\nFlags: Archive\nOwner ID: 0\nSecurity ID: 256\nCreated:        2024-03-11 01:55:14 (UTC)\nFile Modified:  2024-03-11 01:55:14 (UTC)\nMFT Modified:   2024-03-11 01:55:14 (UTC)\nAccessed:       2024-03-11 01:55:14 (UTC)\n\n$FILE_NAME Attribute Values:\nFlags: Archive\nName: incident_summary.txt\nParent MFT Entry: 36   Sequence: 1\nAllocated Size: 0   Actual Size: 271\n\nAttributes:\nType: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72\nType: $FILE_NAME (48-1)               Name: N/A   Resident   size: 96\nType: $DATA (128-2)                   Name: $Data  Resident   size: 271</code></pre>\n<p>Walk through the attribute list from top to bottom.\n<code>$STANDARD_INFORMATION</code> (type 16) is always present and\nalways resident; it holds the four timestamps above, plus the\narchive/hidden/system flags, owner ID, and security descriptor index.\n<code>$FILE_NAME</code> (type 48) is also always resident — it must be,\nbecause the directory index B-tree references it directly when NTFS\nresolves a path. It carries its own independent copy of the four\ntimestamps, which become important in Task 7.</p>\n<p>Two points to commit to memory. First, the <code>$FILE_NAME</code>\nattribute records the parent MFT entry (36), which is the\n<code>Documents</code> directory — this is how NTFS reconstructs paths\neven for deleted files whose directory entry has been cleared. Second,\nthe four <code>$STANDARD_INFORMATION</code> timestamps are writable by\nany process with normal file access; <code>$FILE_NAME</code> timestamps\nare updated by the NTFS kernel driver during directory index operations\nand are significantly harder to manipulate from user space.</p>\n<h3 id=\"attribute-type-reference\">2.3 — Attribute type reference</h3>\n<table>\n<colgroup>\n<col style=\"width: 33%\" />\n<col style=\"width: 33%\" />\n<col style=\"width: 33%\" />\n</colgroup>\n<thead>\n<tr class=\"header\">\n<th>Type code</th>\n<th>Name</th>\n<th>Purpose</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>16 (0x10)</td>\n<td><code>$STANDARD_INFORMATION</code></td>\n<td>Timestamps, flags, owner/security IDs</td>\n</tr>\n<tr class=\"even\">\n<td>48 (0x30)</td>\n<td><code>$FILE_NAME</code></td>\n<td>Name, parent entry, second timestamp set</td>\n</tr>\n<tr class=\"odd\">\n<td>96 (0x60)</td>\n<td><code>$VOLUME_NAME</code></td>\n<td>Volume label string</td>\n</tr>\n<tr class=\"even\">\n<td>112 (0x70)</td>\n<td><code>$VOLUME_INFORMATION</code></td>\n<td>NTFS version, dirty flag</td>\n</tr>\n<tr class=\"odd\">\n<td>128 (0x80)</td>\n<td><code>$DATA</code></td>\n<td>File content (resident or non-resident)</td>\n</tr>\n<tr class=\"even\">\n<td>144 (0x90)</td>\n<td><code>$INDEX_ROOT</code></td>\n<td>Directory B-tree root node</td>\n</tr>\n<tr class=\"odd\">\n<td>160 (0xA0)</td>\n<td><code>$INDEX_ALLOCATION</code></td>\n<td>Directory B-tree non-resident overflow</td>\n</tr>\n<tr class=\"even\">\n<td>176 (0xB0)</td>\n<td><code>$BITMAP</code></td>\n<td>Allocation tracking for directories and <code>$MFT</code></td>\n</tr>\n</tbody>\n</table>\n<hr />"
+  },
+  {
+    "title": "Task 3 · Resident vs. Non-Resident Attributes",
+    "content": "<p>When a file’s data fits within the available space in its 1024-byte\nMFT record, NTFS stores it inline as a <em>resident</em> attribute — no\ncluster allocation occurs at all. The content lives entirely inside the\nMFT. When data is too large, NTFS marks the <code>$DATA</code> attribute\n<em>non-resident</em> and stores a <em>run list</em> (an extent map) in\nits place: a compact encoding of which clusters hold the content, and in\nwhat order.</p>\n<p>This distinction matters forensically for two reasons. Resident data\nsurvives as long as the MFT entry survives, even if the surrounding\nclusters have been reallocated. Non-resident data can be partially\noverwritten cluster by cluster, creating recovery scenarios where some\nextents are intact and others are not.</p>\n<p>Smith’s manager has claimed the payroll export was too large to have\nbeen typed or pasted manually. Confirming its non-resident status — and\nlocating its cluster run — is the first step in verifying that claim and\nestablishing that the data was physically present on this volume.</p>\n<h3 id=\"resident-incident_summary.txt\">3.1 — Resident:\nincident_summary.txt</h3>\n<p>From Task 2, <code>$DATA</code> is resident at 271 bytes. Confirm the\ncontent is returned directly from the MFT with no cluster lookup:</p>\n<pre class=\"bash\"><code>icat ntfs_lab.img 38</code></pre>\n<pre><code>INTERNAL — RESTRICTED\nCase: 2024-0311\nSubject: J. Smith, contractor, badge C-1847\nAccess revoked: 2024-03-11 03:00 UTC\nSummary: Three files confirmed exfiltrated to external host 192.168.1.88\nbetween 02:14 and 02:31 UTC on 2024-03-11. No malware identified.\nAssigned analyst: review this workstation image for corroborating evidence.</code></pre>\n<p>The data was returned directly from the MFT record. No cluster lookup\nwas required. If the surrounding clusters had been reallocated — or if\nthe file had never been written to clusters at all — <code>icat</code>\nwould still return this content as long as the MFT entry itself was\nintact.</p>\n<h3 id=\"non-resident-payroll_export.csv\">3.2 — Non-resident:\npayroll_export.csv</h3>\n<pre class=\"bash\"><code>istat ntfs_lab.img 39</code></pre>\n<pre><code>Attributes:\nType: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72\nType: $FILE_NAME (48-1)               Name: N/A   Resident   size: 98\nType: $DATA (128-2)                   Name: $Data  Non-Resident  size: 3121408\n  Start VCN: 0   End VCN: 761\n  3072 3073 3074 ... (762 clusters)</code></pre>\n<p>The <code>$DATA</code> attribute is non-resident. Its content field\nis not the file data — it is a run list: a sequence of cluster numbers\ndescribing where the data lives on disk. The VCN range (Virtual Cluster\nNumber 0 through 761) tells you the logical extent of the file. The\nphysical cluster run beginning at 3072 is where those logical clusters\nare mapped on disk.</p>\n<h3 id=\"verify-cluster-geometry\">3.3 — Verify cluster geometry</h3>\n<p>Before reading from the cluster run, calculate the expected cluster\ncount independently to confirm the run list is consistent with the\nrecorded file size:</p>\n<pre class=\"bash\"><code>python3 -c &quot;import math; print(math.ceil(3121408 / 4096))&quot;</code></pre>\n<pre><code>763</code></pre>\n<p>The run list reports 762 contiguous clusters — one fewer than the\nceiling, because the last cluster is only partially filled (the\nremainder is cluster slack). The numbers are consistent. Now confirm the\nfirst cluster of the run holds what we expect:</p>\n<pre class=\"bash\"><code>blkcat ntfs_lab.img 3072 | head -c 80 | xxd</code></pre>\n<pre><code>00000000: 456d 706c 6f79 6565 4944 2c46 6972 7374  EmployeeID,First\n00000010: 4e61 6d65 2c4c 6173 744e 616d 652c 4465  Name,LastName,De\n00000020: 7061 7274 6d65 6e74 2c53 616c 6172 792c  partment,Salary,\n00000030: 5353 4e5f 4c61 7374 342c 4261 6e6b 526f  SSN_Last4,BankRo\n00000040: 7574 696e 674c 6173 7434 0d0a 4530 3030  utingLast4..E000</code></pre>\n<p>The cluster begins with the CSV header row, confirming this is the\nstart of <code>payroll_export.csv</code>. The HR data was physically\npresent on this volume and is directly recoverable from the cluster\nrun.</p>\n<div class=\"callout-warning\">\n<p><code>blkstat ntfs_lab.img 3072</code> will report “Not Allocated”\nfor this cluster. This is counterintuitive: the field reflects whether\nthe cluster is listed as <em>free</em> in <code>$Bitmap</code>. A\ncluster in use by a file reads “Not Allocated” because it is not\navailable for new allocation. A free cluster reads “Allocated.” The\nnaming convention is inverted relative to common intuition.</p>\n</div>\n<hr />"
+  },
+  {
+    "title": "Task 4 · Alternate Data Streams",
+    "content": "<p>A named <code>$DATA</code> attribute — called an Alternate Data\nStream (ADS) — allows a single MFT entry to carry multiple independent\ndata payloads. The filename visible to users and most tools refers only\nto the default (unnamed) <code>$DATA</code> attribute. Named streams are\ninvisible to <code>ls</code>, <code>cat</code>, <code>wc</code>, and\nforensic keyword search passes that iterate over default streams only.\nThe file size reported by the directory index reflects only the default\nstream.</p>\n<p>On Windows, the NTFS driver uses a stream named\n<code>Zone.Identifier</code> on files downloaded from the Internet to\nrecord provenance: the download URL, referring page, and security zone.\nThis is legitimate and forensically valuable. Malicious use of ADS\nfollows the same mechanism: store a payload in a named stream on an\ninnocuous-looking file, then access it with a stream-qualified path.</p>\n<p>The image contains two ADS artifacts. One records where\n<code>VPN_client_setup.exe</code> was downloaded from. The other, on\n<code>sync_config.ini</code>, may explain the exfiltration\nmechanism.</p>\n<h3 id=\"identify-ads-in-fls-output\">4.1 — Identify ADS in fls\noutput</h3>\n<pre class=\"bash\"><code>fls -r ntfs_lab.img | grep &quot;:&quot;</code></pre>\n<pre><code>r/r 42-128-4:   Users/jsmith/Downloads/VPN_client_setup.exe:Zone.Identifier\nr/r 43-128-4:   Users/jsmith/AppData/Roaming/sync_config.ini:credentials</code></pre>\n<p>Both entries share their MFT entry number with their parent file,\nconfirming they are additional <code>$DATA</code> attributes in the same\nMFT record. Note that nothing in the default <code>fls</code> output\nflags these as unusual — they appear inline with regular files. A tool\nthat does not parse the attribute type field would miss them\nentirely.</p>\n<h3 id=\"examine-attribute-layout-with-istat\">4.2 — Examine attribute\nlayout with istat</h3>\n<pre class=\"bash\"><code>istat ntfs_lab.img 43</code></pre>\n<pre><code>Attributes:\nType: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72\nType: $FILE_NAME (48-1)               Name: N/A   Resident   size: 94\nType: $DATA (128-1)                   Name: $Data  Resident   size: 68\nType: $DATA (128-4)                   Name: credentials  Resident   size: 52</code></pre>\n<p>Two <code>$DATA</code> attributes in the same MFT record. Instance 1\nis the default stream (the visible INI content). Instance 4 is the\n<code>credentials</code> stream. Both are resident — small enough to\nlive inside the 1024-byte MFT record alongside the other attributes.</p>\n<h3 id=\"extract-the-default-stream\">4.3 — Extract the default\nstream</h3>\n<pre class=\"bash\"><code>icat ntfs_lab.img 43</code></pre>\n<pre><code>[SyncTool v2.1]\nserver=backup.internal.corp\ninterval=3600\ncompression=true</code></pre>\n<p>Benign-looking configuration. No indication of exfiltration tooling\nfrom the default stream alone.</p>\n<h3 id=\"extract-the-credentials-stream\">4.4 — Extract the credentials\nstream</h3>\n<blockquote>\n<p><strong>↳ Your task:</strong> Extract the <code>credentials</code>\nnamed stream using its stream-qualified inode address from the\n<code>fls</code> output. What does the <code>remote</code> field\ncontain, and how does it connect to the network alert?</p>\n</blockquote>\n<section id=\"answer\" class=\"callout-note\" data-collapse=\"true\">\n<h4>Answer</h4>\n<pre class=\"bash\"><code>icat ntfs_lab.img 43-128-4</code></pre>\n<pre><code>api_key=sk-4623-EXFIL-a7f3c9d1e2b8\nremote=sftp://192.168.1.88/drop</code></pre>\n<p>The remote SFTP destination matches the IP address in the network\nmonitoring alert. The API key provides authentication. Both were stored\nin a named stream invisible to any tool that reads only the default\nstream — the INI file would have appeared benign in a standard file\nreview.</p>\n</section>\n<h3 id=\"examine-the-zone.identifier-stream\">4.5 — Examine the\nZone.Identifier stream</h3>\n<blockquote>\n<p><strong>↳ Your task:</strong> Extract the\n<code>Zone.Identifier</code> stream from\n<code>VPN_client_setup.exe</code> (MFT entry 42). What do the\n<code>ZoneId</code>, <code>ReferrerUrl</code>, and <code>HostUrl</code>\nfields tell you about where this file came from? Why is this stream a\nmore reliable provenance indicator than the file’s SI timestamps?</p>\n</blockquote>\n<section id=\"answer-1\" class=\"callout-note\" data-collapse=\"true\">\n<h4>Answer</h4>\n<pre class=\"bash\"><code>icat ntfs_lab.img 42-128-4</code></pre>\n<pre><code>[ZoneTransfer]\nZoneId=3\nReferrerUrl=http://transfer.sh/upload\nHostUrl=http://transfer.sh/VPN_client_setup.exe</code></pre>\n<p><code>ZoneId=3</code> is the Windows Internet zone — the file was\ndownloaded from the Internet rather than a local or intranet source. The\n<code>HostUrl</code> identifies a public file-transfer service, not an\ninternal software distribution point. The Windows shell writes this\nstream automatically at download time through the\n<code>IAttachmentExecute</code> interface; it cannot be set\nretroactively through normal file operations. This makes it\nsubstantially harder to fabricate after the fact than SI timestamps,\nwhich are writable by any process.</p>\n</section>\n<hr />"
+  },
+  {
+    "title": "Task 5 · Deletion and Recovery",
+    "content": "<p>When a file is deleted in NTFS, the MFT entry is marked unallocated\nand the clusters belonging to its <code>$DATA</code> attribute are\ncleared in <code>$Bitmap</code>. The MFT record itself is not zeroed —\nthe <code>$FILE_NAME</code>, <code>$STANDARD_INFORMATION</code>, and\n(for resident files) <code>$DATA</code> attributes remain physically in\nplace until the entry is reused by a new file. For non-resident files,\nthe data clusters are preserved until reallocated.</p>\n<p>TSK exploits this by scanning the MFT for entries where the allocated\nflag is cleared, exposing deleted files that the filesystem no longer\nacknowledges. The recovery window closes as new file activity reuses MFT\nentries and clusters. On a live system under active use this window can\nclose within minutes; on a forensic image taken shortly after the\nincident, recently deleted files are typically still recoverable.</p>\n<p>The image contains four deleted files in different states. Your task\nis to find them, recover what you can, and assess the recovery status of\neach.</p>\n<h3 id=\"list-unallocated-entries\">5.1 — List unallocated entries</h3>\n<pre class=\"bash\"><code>fls -r -d ntfs_lab.img</code></pre>\n<pre><code>r/r * 62-128-1: System/Logs/access.log\nr/r * 71-128-1: Users/jsmith/Documents/final_export.csv\nr/r * 74-128-1: Users/jsmith/Desktop/staging.txt\nr/r * 75-128-1: Users/jsmith/Desktop/draft_note.txt</code></pre>\n<p>The <code>*</code> marks each entry as unallocated. All four show a\nreconstructed path — TSK derives this from the <code>$FILE_NAME</code>\nattribute’s parent MFT entry field, not from a live directory index.\nEven though the directory no longer lists these files, the MFT records\nstill point to their last known parent.</p>\n<h3 id=\"recover-with-tsk_recover\">5.2 — Recover with tsk_recover</h3>\n<pre class=\"bash\"><code>mkdir -p recovered\ntsk_recover ntfs_lab.img recovered/\ncat recovered/access.log</code></pre>\n<pre><code>2024-03-11 02:14:03 WS-042 user=jsmith src=192.168.1.88 action=READ  file=payroll_export.csv\n2024-03-11 02:19:45 WS-042 user=jsmith src=192.168.1.88 action=COPY  file=contracts_q1.docx\n2024-03-11 02:28:07 WS-042 user=jsmith src=192.168.1.88 action=READ  file=keys.pem\n2024-03-11 02:31:12 WS-042 user=jsmith src=192.168.1.88 action=COPY  file=payroll_export.csv</code></pre>\n<p>The log records two copy operations on\n<code>payroll_export.csv</code> from the workstation to\n<code>192.168.1.88</code>, consistent with the network alert. The log\nwas deleted — presumably to conceal this activity — but the MFT entry\nwas still unallocated at acquisition time, and the content was recovered\nintact.</p>\n<h3 id=\"check-recovery-status-for-a-resident-deleted-file\">5.3 — Check\nrecovery status for a resident deleted file</h3>\n<p>Not all deleted files are equally recoverable.\n<code>draft_note.txt</code> is small enough to have been stored\nresident. Check whether it has a cluster run:</p>\n<blockquote>\n<p><strong>↳ Your task:</strong> Run <code>istat ntfs_lab.img 75</code>.\nDoes <code>$DATA</code> have a cluster run? What does that mean for\ncarving-based recovery if the MFT entry had been reused?</p>\n</blockquote>\n<section id=\"answer\" class=\"callout-note\" data-collapse=\"true\">\n<h4>Answer</h4>\n<pre class=\"bash\"><code>istat ntfs_lab.img 75</code></pre>\n<pre><code>Attributes:\nType: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72\nType: $FILE_NAME (48-1)               Name: N/A   Resident   size: 88\nType: $DATA (128-2)                   Name: $Data  Resident   size: 6</code></pre>\n<p><code>$DATA</code> is resident — no cluster run exists. The file’s\ncontent was never written to a data cluster. A carving tool scanning\nunallocated clusters for file signatures would never find this file.\nRecovery depends entirely on the MFT entry surviving intact. Once that\nentry is reused for a new file, the content is gone.</p>\n</section>\n<h3 id=\"trace-a-renamed-and-deleted-file-with-ffind\">5.4 — Trace a\nrenamed and deleted file with ffind</h3>\n<p><code>final_export.csv</code> was renamed from\n<code>temp_export.csv</code> before deletion. The MFT record holds only\nthe last-known filename — the one active at deletion time.</p>\n<blockquote>\n<p><strong>↳ Your task:</strong> Run <code>ffind ntfs_lab.img 71</code>.\nWhat does the <code>*</code> prefix indicate? Why does the original name\n<code>temp_export.csv</code> not appear here, and where would you look\nto find evidence of the rename?</p>\n</blockquote>\n<section id=\"answer-1\" class=\"callout-note\" data-collapse=\"true\">\n<h4>Answer</h4>\n<pre class=\"bash\"><code>ffind ntfs_lab.img 71</code></pre>\n<pre><code>* /Users/jsmith/Documents/final_export.csv</code></pre>\n<p>The <code>*</code> indicates the name was recovered from an\nunallocated MFT entry, not from a live directory index. The parent\ndirectory no longer has an index entry for MFT 71 — it was removed at\ndeletion time. The filename comes from the <code>$FILE_NAME</code>\nattribute surviving in the unallocated record.</p>\n<p>The rename updated the <code>$FILE_NAME</code> attribute in place, so\nonly the final name survives in the MFT entry. The original name\n<code>temp_export.csv</code> is gone from the MFT — but the rename event\nis recorded in <code>$UsnJrnl</code>, which you will examine in Task\n6.</p>\n</section>\n<hr />"
+  },
+  {
+    "title": "Task 6 · Journaling and MFT Dump",
+    "content": "<p>NTFS maintains two journals. <code>$LogFile</code> (entry 2) is a\nredo/undo log for metadata operations — its purpose is crash\nconsistency, not investigative history. It wraps quickly and its binary\nformat is not designed for forensic consumption.</p>\n<p><code>$UsnJrnl</code> (Update Sequence Number journal) is different.\nIt records every filesystem change — creation, deletion, rename,\nattribute modification, data write — as a sequential stream of\nfixed-size records. It does not store file content, only change events\ntagged with the filename and MFT entry number of the affected file. On a\nproduction system it wraps after a configurable size (default 32 MB on\nmodern Windows), but the history it preserves can span days or\nweeks.</p>\n<p>The <code>$UsnJrnl</code> is where you will find the rename from\n<code>temp_export.csv</code> to <code>final_export.csv</code> that\n<code>ffind</code> could not show.</p>\n<h3 id=\"locate-usnjrnl-under-extend\">6.1 — Locate $UsnJrnl under\n$Extend</h3>\n<pre class=\"bash\"><code>fls ntfs_lab.img 11</code></pre>\n<pre><code>r/r 24-128-1:   $UsnJrnl\nr/r 25-128-1:   $ObjId</code></pre>\n<pre class=\"bash\"><code>istat ntfs_lab.img 24</code></pre>\n<pre><code>Attributes:\nType: $DATA (128-1)    Name: $Max   Resident   size: 32\nType: $DATA (128-2)    Name: $J     Non-Resident  size: 8192\n  Run list: 7680 7681 (2 clusters)</code></pre>\n<p><code>$UsnJrnl</code> carries two named streams: <code>$Max</code>\n(journal configuration) and <code>$J</code> (the change records). Both\nare named <code>$DATA</code> attributes in the same MFT entry — the\nidentical ADS mechanism from Task 4, used here by the operating system\nitself for its own housekeeping.</p>\n<h3 id=\"extract-and-parse-the-j-stream\">6.2 — Extract and parse the $J\nstream</h3>\n<pre class=\"bash\"><code>icat ntfs_lab.img 24-128-2 &gt; usn.bin\nxxd usn.bin | head -40</code></pre>\n<pre><code>00000000: 0000 0000 0000 0000 0000 0000 0000 0000  ................\n...\n00001000: 6000 0000 0000 0000 2800 0000 0000 0000  `.......(.......\n00001010: 4700 0000 0100 0000 6800 0000 0000 0000  G.......h.......\n00001020: 0200 0000 0200 0000 0000 8000 2000 0000  ............ ...\n00001030: 1a00 7400 6500 6d00 7000 5f00 6500 7800  ..t.e.m.p._.e.x\n00001040: 7000 6f00 7200 7400 2e00 6300 7300 7600  p.o.r.t...c.s.v.</code></pre>\n<p>The leading zeros are the journal’s sparse region before the first\nrecord. The first USN record begins at offset <code>0x1000</code>. The\n4-byte record length at that offset is <code>0x60</code> = 96 bytes. At\noffset <code>0x30</code> within the record you can read the filename in\nUTF-16LE: <code>t.e.m.p._.e.x.p.o.r.t...c.s.v.</code> —\n<code>temp_export.csv</code>.</p>\n<p>Parse all records to extract the event sequence:</p>\n<pre class=\"bash\"><code>python3 - &lt;&lt; &#39;EOF&#39;\nimport struct\n\nREASONS = {\n    0x00000001: &quot;DATA_OVERWRITE&quot;,  0x00000002: &quot;DATA_EXTEND&quot;,\n    0x00000100: &quot;FILE_CREATE&quot;,     0x00000200: &quot;FILE_DELETE&quot;,\n    0x00001000: &quot;RENAME_OLD_NAME&quot;, 0x00002000: &quot;RENAME_NEW_NAME&quot;,\n    0x00004000: &quot;INDEXABLE_CHANGE&quot;,0x80000000: &quot;CLOSE&quot;,\n}\n\ndata = open(&quot;usn.bin&quot;, &quot;rb&quot;).read()\ni = 0\nwhile i &lt; len(data) - 60:\n    rec_len = struct.unpack_from(&quot;&lt;I&quot;, data, i)[0]\n    if rec_len &lt; 60 or rec_len &gt; 65536:\n        i += 8\n        continue\n    reason  = struct.unpack_from(&quot;&lt;I&quot;, data, i + 40)[0]\n    fn_len  = struct.unpack_from(&quot;&lt;H&quot;, data, i + 52)[0]\n    fn_off  = struct.unpack_from(&quot;&lt;H&quot;, data, i + 54)[0]\n    name    = data[i+fn_off : i+fn_off+fn_len].decode(&quot;utf-16-le&quot;, errors=&quot;replace&quot;)\n    reasons = &quot;|&quot;.join(v for k,v in REASONS.items() if reason &amp; k)\n    print(f&quot;  {reasons:&lt;30} {name}&quot;)\n    i += rec_len\nEOF</code></pre>\n<pre><code>  FILE_CREATE                    temp_export.csv\n  DATA_EXTEND|CLOSE              temp_export.csv\n  RENAME_OLD_NAME                temp_export.csv\n  RENAME_NEW_NAME                final_export.csv\n  FILE_DELETE|CLOSE              final_export.csv\n  FILE_CREATE                    payroll_export.csv\n  ...</code></pre>\n<p>The journal has preserved the full sequence:\n<code>temp_export.csv</code> was created, written, renamed to\n<code>final_export.csv</code>, then deleted. The\n<code>RENAME_OLD_NAME</code> / <code>RENAME_NEW_NAME</code> pair is the\nevent that the MFT entry alone could not show. The journal is a\nsequential audit trail that persists across deletion and MFT entry\nreuse, as long as the journal clusters themselves have not been\noverwritten.</p>\n<h3 id=\"parse-mft-with-analyzemft\">6.3 — Parse $MFT with analyzeMFT</h3>\n<p><code>analyzeMFT</code> parses the raw <code>$MFT</code> bytes into a\nCSV with one row per entry, including deleted and unallocated entries,\nwith all attribute fields decoded into readable columns.</p>\n<blockquote>\n<p><strong>↳ Your task:</strong> Extract <code>$MFT</code>, run\n<code>analyzeMFT</code>, and check the output for the four deleted\nentries from Task 5. What does the <code>In Use</code> column show, and\nhow do the timestamps compare to what <code>istat</code> reported?</p>\n</blockquote>\n<section id=\"answer\" class=\"callout-note\" data-collapse=\"true\">\n<h4>Answer</h4>\n<pre class=\"bash\"><code>icat ntfs_lab.img 0 &gt; mft.raw\nanalyzeMFT -f mft.raw -o mft.csv\ngrep -i &quot;access.log\\|final_export\\|staging\\|draft_note&quot; mft.csv</code></pre>\n<p>The <code>In Use</code> column reads <code>False</code> for all four\ndeleted entries — confirming they are flagged as unallocated in the MFT\nbitmap despite their records being physically present. Timestamps match\n<code>istat</code> output. <code>analyzeMFT</code> adds value by\npresenting the entire MFT in a single tabular view, making cross-entry\ntimeline analysis practical without running <code>istat</code> on each\nentry individually.</p>\n<p>If <code>analyzeMFT</code> is not installed:\n<code>pip install analyzeMFT --break-system-packages</code></p>\n</section>\n<hr />"
+  },
+  {
+    "title": "Task 7 · Mini-Challenge — Timestomping",
+    "content": "<p>Anti-forensic timestomping exploits the fact that\n<code>$STANDARD_INFORMATION</code> timestamps are writable by any\nprocess through normal Windows API calls — a single call to\n<code>SetFileTime</code> can set them to any arbitrary value. The\n<code>$FILE_NAME</code> timestamps, by contrast, are written by the NTFS\nkernel driver when a directory index entry is created or updated. They\ndo not respond to user-space timestamp modification APIs.</p>\n<p>When SI and FN timestamps diverge — especially when SI timestamps are\nimplausibly old while FN timestamps are consistent with surrounding\nfiles — the divergence is a strong indicator of deliberate manipulation.\nThis is detectable with <code>istat</code> alone: it reports both sets\nin every MFT entry.</p>\n<p>There are two timestomped files in the image. They are not equally\nobvious — the second requires comparing individual timestamp fields\nrather than spotting an obviously wrong year. Find both, and for each\ndocument: the filename, the MFT entry number, which specific timestamps\ndiverge, the SI value, the FN value, and what forensic conclusion you\nwould draw about what the attacker was trying to accomplish.</p>\n<div class=\"callout-tip\">\n<p>Run <code>istat</code> on each regular user file and compare the\n<code>$STANDARD_INFORMATION</code> and <code>$FILE_NAME</code> blocks\nside by side. The two anomalies have different signatures — one is a\nwholesale replacement of all four SI timestamps, the other is a targeted\nmodification of a single field.</p>\n</div>\n<section id=\"answer\" class=\"callout-note\" data-collapse=\"true\">\n<h4>Answer</h4>\n<p><strong>File 1: project_notes.txt (MFT entry 41)</strong></p>\n<pre class=\"bash\"><code>istat ntfs_lab.img 41</code></pre>\n<pre><code>$STANDARD_INFORMATION:\nCreated:       2001-01-01 00:00:00 (UTC)\nFile Modified: 2001-01-01 00:00:00 (UTC)\nMFT Modified:  2001-01-01 00:00:00 (UTC)\nAccessed:      2001-01-01 00:00:00 (UTC)\n\n$FILE_NAME:\nCreated:       2024-03-11 01:57:22 (UTC)\nFile Modified: 2024-03-11 01:57:22 (UTC)\nMFT Modified:  2024-03-11 01:57:26 (UTC)\nAccessed:      2024-03-11 01:57:22 (UTC)</code></pre>\n<p>All four SI timestamps were replaced with 2001-01-01 — a round-number\ndate with no plausible legitimate explanation on a 2024 workstation. The\nFN timestamps record the actual creation time. In a naive timeline\nanalysis relying only on SI timestamps, this file would appear to\npredate the workstation itself, placing it outside the incident\nwindow.</p>\n<p><strong>File 2: contracts_index.txt (MFT entry 40)</strong></p>\n<pre class=\"bash\"><code>istat ntfs_lab.img 40</code></pre>\n<pre><code>$STANDARD_INFORMATION:\nCreated:       2024-03-11 01:56:44 (UTC)\nFile Modified: 2015-06-15 09:00:00 (UTC)\nMFT Modified:  2024-03-11 01:56:44 (UTC)\nAccessed:      2024-03-11 01:56:44 (UTC)\n\n$FILE_NAME:\nCreated:       2024-03-11 01:56:44 (UTC)\nFile Modified: 2024-03-11 01:56:44 (UTC)\nMFT Modified:  2024-03-11 01:56:44 (UTC)\nAccessed:      2024-03-11 01:56:44 (UTC)</code></pre>\n<p>Only the SI <code>File Modified</code> timestamp was altered — to\n2015-06-15. Created, MFT Modified, and Accessed are consistent with the\nFN values and with the creation time of surrounding files. This is a\ntargeted stomp: only the Modified timestamp was changed, moving the\nfile’s “last modified” marker in a timeline nine years into the past,\npotentially outside the investigation window. The FN Modified timestamp\nof 2024-03-11 directly contradicts the SI value and exposes the\nmanipulation.</p>\n</section>\n<hr />"
+  },
+  {
+    "title": "Summary",
+    "content": "<table>\n<colgroup>\n<col style=\"width: 33%\" />\n<col style=\"width: 33%\" />\n<col style=\"width: 33%\" />\n</colgroup>\n<thead>\n<tr class=\"header\">\n<th>Task</th>\n<th>Concept</th>\n<th>Key commands</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>0</td>\n<td>NTFS geometry, bare volume images</td>\n<td><code>fsstat</code>, <code>file</code></td>\n</tr>\n<tr class=\"even\">\n<td>1</td>\n<td>System metadata files, <code>$Volume</code> attributes</td>\n<td><code>fls</code>, <code>istat 0</code>, <code>istat 3</code></td>\n</tr>\n<tr class=\"odd\">\n<td>2</td>\n<td>MFT entry anatomy, attribute types</td>\n<td><code>istat</code>, <code>fls -r</code></td>\n</tr>\n<tr class=\"even\">\n<td>3</td>\n<td>Resident vs. non-resident, run list geometry</td>\n<td><code>istat</code>, <code>blkstat</code>, <code>blkcat</code></td>\n</tr>\n<tr class=\"odd\">\n<td>4</td>\n<td>Alternate Data Streams, <code>Zone.Identifier</code></td>\n<td><code>fls</code>,\n<code>icat &lt;entry&gt;-128-&lt;id&gt;</code></td>\n</tr>\n<tr class=\"even\">\n<td>5</td>\n<td>Deletion, recovery states, rename tracing</td>\n<td><code>fls -r -d</code>, <code>tsk_recover</code>,\n<code>ffind</code></td>\n</tr>\n<tr class=\"odd\">\n<td>6</td>\n<td><code>$UsnJrnl</code> structure and parsing, MFT dump</td>\n<td><code>icat 24-128-2</code>, <code>analyzeMFT</code></td>\n</tr>\n<tr class=\"even\">\n<td>7</td>\n<td>SI vs. FN timestamp divergence, timestomping</td>\n<td><code>istat</code> (compare both blocks)</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"reference-ntfs-system-file-mft-entries\">Reference: NTFS system\nfile MFT entries</h3>\n<table>\n<colgroup>\n<col style=\"width: 33%\" />\n<col style=\"width: 33%\" />\n<col style=\"width: 33%\" />\n</colgroup>\n<thead>\n<tr class=\"header\">\n<th>Entry</th>\n<th>Name</th>\n<th>Role</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>0</td>\n<td><code>$MFT</code></td>\n<td>Master File Table</td>\n</tr>\n<tr class=\"even\">\n<td>1</td>\n<td><code>$MFTMirr</code></td>\n<td>MFT mirror (first 4 entries)</td>\n</tr>\n<tr class=\"odd\">\n<td>2</td>\n<td><code>$LogFile</code></td>\n<td>Metadata redo/undo journal</td>\n</tr>\n<tr class=\"even\">\n<td>3</td>\n<td><code>$Volume</code></td>\n<td>Volume name, version, dirty flag</td>\n</tr>\n<tr class=\"odd\">\n<td>4</td>\n<td><code>$AttrDef</code></td>\n<td>Attribute type definitions</td>\n</tr>\n<tr class=\"even\">\n<td>5</td>\n<td><code>.</code></td>\n<td>Root directory</td>\n</tr>\n<tr class=\"odd\">\n<td>6</td>\n<td><code>$Bitmap</code></td>\n<td>Cluster allocation map</td>\n</tr>\n<tr class=\"even\">\n<td>7</td>\n<td><code>$Boot</code></td>\n<td>Boot sector</td>\n</tr>\n<tr class=\"odd\">\n<td>8</td>\n<td><code>$BadClus</code></td>\n<td>Bad cluster list</td>\n</tr>\n<tr class=\"even\">\n<td>9</td>\n<td><code>$Secure</code></td>\n<td>Security descriptors</td>\n</tr>\n<tr class=\"odd\">\n<td>10</td>\n<td><code>$UpCase</code></td>\n<td>Unicode uppercase table</td>\n</tr>\n<tr class=\"even\">\n<td>11</td>\n<td><code>$Extend</code></td>\n<td>Extension directory (<code>$UsnJrnl</code>, <code>$Quota</code>,\n<code>$ObjId</code>)</td>\n</tr>\n</tbody>\n</table>"
+  }
+];
+</script>
+
+<!-- ── Navigation Engine ───────────────────────────────────────── -->
+<script>
+(function () {
+  const steps  = STEPS;
+  const TOTAL  = steps.length;
+  let current  = 0;
+
+  const stepView    = document.getElementById('step-view');
+  const stepList    = document.getElementById('step-list');
+  const btnPrev     = document.getElementById('btn-prev');
+  const btnNext     = document.getElementById('btn-next');
+  const stepCounter = document.getElementById('step-counter');
+  const topbarMeta  = document.getElementById('topbar-meta');
+
+  // Build sidebar
+  steps.forEach((step, i) => {
+    const li = document.createElement('li');
+    li.innerHTML =
+      `<span class="step-num">${i + 1}</span>` +
+      `<span class="step-lbl">${step.title}</span>`;
+    li.addEventListener('click', () => go(i));
+    stepList.appendChild(li);
+  });
+
+  function go(idx) {
+    if (idx < 0 || idx >= TOTAL) return;
+    current = idx;
+
+    stepView.innerHTML =
+      `<div class="step-hdr">` +
+        `<div class="step-badge">${idx + 1}</div>` +
+        `<h1>${steps[idx].title}</h1>` +
+      `</div>` +
+      steps[idx].content;
+
+    // Re-trigger animation
+    stepView.style.animation = 'none';
+    void stepView.offsetWidth;
+    stepView.style.animation = '';
+
+    window.scrollTo(0, 0);
+
+    document.querySelectorAll('#step-list li').forEach((li, i) => {
+      li.classList.toggle('active', i === idx);
+    });
+
+    btnPrev.classList.toggle('hidden', idx === 0);
+    btnNext.textContent = idx === TOTAL - 1 ? 'Done ✓' : 'Next →';
+
+    stepCounter.textContent = `${idx + 1} of ${TOTAL}`;
+    topbarMeta.textContent  = `Step ${idx + 1} / ${TOTAL}`;
+  }
+
+  btnPrev.addEventListener('click', () => go(current - 1));
+  btnNext.addEventListener('click', () => { if (current < TOTAL - 1) go(current + 1); });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(current - 1);
+  });
+
+  go(0);
+})();
+</script>
+</body>
+</html>

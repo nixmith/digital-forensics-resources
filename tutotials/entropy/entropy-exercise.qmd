@@ -1,0 +1,312 @@
+# Exercise: Entropy Analysis for Disk Triage
+
+**CSCI 4623 — Digital Forensics**
+
+## Overview
+
+In this exercise you will build a small composite disk image containing four
+distinct data regions, measure the entropy of each region using `ent`, and
+determine what each region contains based on entropy alone. You will then
+discover where entropy analysis fails and learn what complementary tools to
+reach for.
+
+**Time:** 20–30 minutes  
+**Prerequisites:** Linux shell, `ent`, `gnuplot` (or any plotting tool), `openssl`, `gzip`, `dd`
+
+### Install `ent` (if not already available)
+
+```bash
+# Debian/Ubuntu
+sudo apt install ent
+
+# From source (if not packaged)
+# http://www.fourmilab.ch/random/
+```
+
+---
+
+## Part 1: Build the Sample Image
+
+We will construct a 4 MB image with four 1 MB regions, each containing a
+different type of data. Run these commands in order:
+
+```bash
+# Create working directory
+mkdir -p ~/entropy-lab && cd ~/entropy-lab
+
+# Region A: All zeroes (wiped space)
+dd if=/dev/zero of=region_a.bin bs=1M count=1 status=none
+
+# Region B: English text (repeated to fill 1 MB)
+cat > seed.txt << 'EOF'
+The quick brown fox jumps over the lazy dog. Digital forensics is the
+process of uncovering and interpreting electronic data. The goal of the
+process is to preserve any evidence in its most original form while
+performing a structured investigation by collecting, identifying, and
+validating the digital information for the purpose of reconstructing
+past events. Entropy measurement provides investigators with a rapid
+triage mechanism to identify regions of interest on storage media.
+EOF
+# Repeat the seed text until we have 1 MB
+while [ $(stat -c%s seed.txt) -lt 1048576 ]; do
+    cat seed.txt seed.txt > seed2.txt && mv seed2.txt seed.txt
+done
+dd if=seed.txt of=region_b.bin bs=1M count=1 status=none
+
+# Region C: Compressed data (gzip)
+# We need 1 MB of pure compressed content, so compress a larger source.
+# Repeat the text to ~10 MB, compress it, then take the first 1 MB of
+# the gzip stream. This ensures every byte in the region is compressed data.
+dd if=region_b.bin of=big_text.bin bs=1M count=1 status=none
+for i in $(seq 1 3); do
+    cat big_text.bin big_text.bin > big_text2.bin && mv big_text2.bin big_text.bin
+done  # ~8 MB of text
+gzip -9 -c big_text.bin > region_c_raw.gz
+dd if=region_c_raw.gz of=region_c.bin bs=1M count=1 status=none
+
+# Region D: Encrypted data (AES-256-CBC)
+# NOTE: -nosalt is used here so the exercise is reproducible across students.
+# In real-world encryption you should NEVER omit the salt — it prevents
+# identical plaintexts from producing identical ciphertexts and defends
+# against precomputed dictionary attacks.
+openssl enc -aes-256-cbc -nosalt -pass pass:forensics4623 \
+    -in region_b.bin -out region_d_raw.enc 2>/dev/null
+dd if=region_d_raw.enc of=region_d.bin bs=1M count=1 status=none
+
+# Concatenate into a single "disk image"
+cat region_a.bin region_b.bin region_c.bin region_d.bin > disk.img
+
+# Clean up intermediates
+rm -f seed.txt seed2.txt big_text.bin region_c_raw.gz region_d_raw.enc
+
+echo "Built disk.img ($(stat -c%s disk.img) bytes)"
+```
+
+**Checkpoint:** `disk.img` should be exactly 4,194,304 bytes (4 MB).
+
+---
+
+## Part 2: Measure Entropy of Each Region
+
+Run `ent` on each region individually:
+
+```bash
+for region in region_a.bin region_b.bin region_c.bin region_d.bin; do
+    echo "=== $region ==="
+    ent "$region"
+    echo
+done
+```
+
+### Record your results in this table:
+
+| Region | Entropy (bits/byte) | Chi-square | Compressibility | Serial Correlation |
+|--------|--------------------:|------------|----------------:|-------------------:|
+| A      |                     |            |                 |                    |
+| B      |                     |            |                 |                    |
+| C      |                     |            |                 |                    |
+| D      |                     |            |                 |                    |
+
+---
+
+## Part 3: Sliding-Window Entropy Scan
+
+Now treat `disk.img` as an unknown image and scan it in fixed-size blocks.
+This simulates what you would do with a real forensic image.
+
+```bash
+# Split the image into 64 KB blocks and measure each
+mkdir -p blocks
+split -b 65536 -d -a 4 disk.img blocks/block_
+
+# Run ent on each block, extract just the entropy value
+echo "block,entropy" > entropy.csv
+for b in blocks/block_*; do
+    offset=$(echo "$b" | grep -oP '\d{4}$')
+    h=$(ent "$b" | head -1 | awk '{print $3}')
+    echo "$offset,$h" >> entropy.csv
+done
+
+echo "Wrote entropy.csv ($(wc -l < entropy.csv) rows including header)"
+```
+
+---
+
+## Part 4: Plot the Results
+
+```bash
+cat > plot.gp << 'GNUPLOT'
+set terminal png size 900,400
+set output "entropy_plot.png"
+set datafile separator ","
+set xlabel "Block Number (64 KB blocks)"
+set ylabel "Entropy (bits/byte)"
+set yrange [0:8.5]
+set grid
+set title "Sliding-Window Entropy Scan — disk.img"
+
+# Draw reference lines
+set arrow from 0,7.5 to 64,7.5 nohead lc rgb "red" dt 2
+set label "compressed/encrypted threshold" at 1,7.7 tc rgb "red" font ",9"
+
+set arrow from 0,5.0 to 64,5.0 nohead lc rgb "blue" dt 2
+set label "text ceiling" at 1,5.2 tc rgb "blue" font ",9"
+
+plot "entropy.csv" skip 1 using 0:2 with linespoints pt 7 ps 0.5 lc rgb "black" notitle
+GNUPLOT
+
+gnuplot plot.gp
+echo "Wrote entropy_plot.png"
+```
+
+Open `entropy_plot.png` in your image viewer to inspect the result.
+
+---
+
+## Part 5: Analysis Questions
+
+### How to Read `ent`'s Chi-Square Output
+
+`ent` reports chi-square in two parts. Here is an example line:
+
+```
+Chi square distribution for 1048576 samples is 233.45,
+  and randomly would exceed this value 75.00 percent of the times.
+```
+
+**The statistic (233.45):** measures how far the observed byte frequencies
+deviate from a perfectly uniform distribution. With 255 degrees of freedom
+(256 possible byte values minus 1), truly random data produces a statistic
+centered around 255.
+
+**The percentage (75.00%):** this is the p-value — the probability that
+truly random data would produce a chi-square value *at least this large*.
+Think of it as "how normal does this look if the data were random?"
+
+| Percentage range     | Interpretation                                      |
+|----------------------|-----------------------------------------------------|
+| 10% – 90%           | Consistent with random data → could be encrypted    |
+| 1% – 10% or 90% – 99% | Mildly suspicious → look closer                  |
+| < 1% or > 99%       | Very unlikely to be random → probably not encrypted |
+
+Compressed data often falls outside the 1%–99% range because compression
+algorithms do not produce perfectly uniform byte distributions. Encrypted
+data (from a sound cipher) should sit comfortably in the middle.
+
+---
+
+Open `entropy_plot.png` and answer the following.
+**Do not look back at Part 1 while answering.**
+
+### Q1: Region Identification
+
+Looking only at the entropy plot, identify what type of content occupies each
+1 MB region (blocks 0–15, 16–31, 32–47, 48–63):
+
+- Region at blocks 0–15:  _______________
+- Region at blocks 16–31: _______________
+- Region at blocks 32–47: _______________
+- Region at blocks 48–63: _______________
+
+### Q2: The Ambiguous Pair
+
+Two of the four regions have very similar entropy values.
+
+a) Which two regions are they?
+
+b) Based on entropy alone, can you determine which is compressed and which is
+   encrypted? Why or why not?
+
+### Q3: Using Chi-Square to Disambiguate
+
+Go back to your table from Part 2. Look at the chi-square results for the two
+high-entropy regions. Use the interpretation guide above.
+
+a) For each of the two high-entropy regions, record the chi-square statistic
+   and the percentage. Which region's percentage falls in the 10%–90% range?
+
+b) What does a percentage in the 10%–90% range tell you about that region?
+
+c) For the other high-entropy region, where does its percentage fall?
+   What does this suggest about how "uniform" its byte distribution really is,
+   despite having high entropy?
+
+d) Based on chi-square alone (ignoring entropy), could you have distinguished
+   these two regions? Explain your reasoning.
+
+### Q4: The Re-Compress Test
+
+Run this experiment:
+
+```bash
+gzip -c region_c.bin | wc -c   # compress the compressed region
+gzip -c region_d.bin | wc -c   # compress the encrypted region
+```
+
+a) Record the output sizes. Are they meaningfully different?
+
+b) Does re-compression help distinguish compressed from encrypted data?
+   Why or why not?
+
+### Q5: Structural Analysis
+
+Now use `file` and `binwalk` to examine the ambiguous regions:
+
+```bash
+file region_c.bin region_d.bin
+binwalk region_c.bin
+binwalk region_d.bin
+```
+
+a) What does `file`/`binwalk` find in the compressed region?
+
+b) What does `file`/`binwalk` find in the encrypted region?
+
+c) Why is structural analysis the decisive test here, when statistical tests
+   (entropy, chi-square, re-compression) all produce similar results?
+
+### Q6: Forensic Scenario
+
+You are examining a 500 GB drive that was reportedly "securely wiped" by a
+suspect. Your sliding-window entropy scan shows:
+
+- 0 – 200 GB: entropy ≈ 0.0
+- 200 – 450 GB: entropy ≈ 7.9993
+- 450 – 500 GB: entropy ≈ 0.0
+
+a) Is this drive consistent with a secure wipe? Explain.
+
+b) What is the most likely explanation for the 200–450 GB region?
+
+c) What would your next investigative steps be?
+
+### Q7: Carving Validation
+
+You carve what `scalpel` identifies as a JPEG from unallocated space. Running
+`ent` on the carved file gives entropy = 2.3 bits/byte.
+
+a) Is this consistent with a valid JPEG? What entropy range would you expect?
+
+b) What likely happened during the carving process?
+
+---
+
+## Part 6: Cleanup
+
+```bash
+cd ~
+rm -rf ~/entropy-lab
+```
+
+---
+
+## Key Takeaways
+
+After completing this exercise, you should be able to:
+
+1. **Use `ent` to measure entropy and chi-square** for any data region
+2. **Map entropy values to content types** using the reference table from lecture
+3. **Recognize the compressed/encrypted ambiguity** in the 7.5–8.0 band
+4. **Apply complementary tools** (`file`, `binwalk`, chi-square, re-compression)
+   to resolve ambiguity
+5. **Interpret entropy plots** to triage disk images for investigation

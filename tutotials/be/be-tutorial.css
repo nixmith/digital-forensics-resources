@@ -1,0 +1,206 @@
+/* be-tutorial.css — bulk_extractor Closeread Tutorial Styles */
+/* CSCI 4623 Digital Forensics                                  */
+
+/* ── Sticky section headers ──────────────────────────────────── */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: #1a1a2e;
+  border-bottom: 3px solid #f9a825;
+  padding: 0.5rem 1.2rem;
+  margin: 0;
+}
+
+.sticky-header h2 {
+  color: #e2e2e2;
+  margin: 0;
+  padding: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Ancestors need overflow:visible for sticky positioning */
+#quarto-content,
+#quarto-document-content,
+.page-columns,
+main,
+main > *:not(.cr-section) {
+  overflow: visible !important;
+}
+
+/* Force cr-sections below sticky headers in stacking order */
+.cr-section {
+  position: relative;
+  z-index: 1 !important;
+}
+
+.cr-section .sticky-col,
+.cr-section .sticky-col-stack,
+.cr-section .sticky-col-stack .sticky {
+  z-index: 2 !important;
+}
+
+.cr-section .narrative-col {
+  z-index: 3 !important;
+}
+
+/* ── Tutorial metadata banner ────────────────────────────────── */
+.tutorial-meta {
+  background: #1a1a2e;
+  color: #e2e2e2;
+  padding: 0.8rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.tutorial-meta code {
+  background: #2d2d4a;
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
+.tutorial-meta a {
+  color: #7ecbf5;
+}
+
+/* ── Tighten closeread spacing ───────────────────────────────── */
+.cr-section .spacer {
+  height: 8vh !important;
+  min-height: 40px !important;
+}
+
+.cr-section .narrative-col > .spacer:first-child,
+.cr-section .narrative-col > .spacer:last-child {
+  height: 4vh !important;
+}
+
+.cr-section {
+  min-height: auto !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+/* ── "Try it" exercise boxes ─────────────────────────────────── */
+.try-it {
+  background: #fff8e1;
+  border-left: 4px solid #f9a825;
+  padding: 0.8rem 1rem;
+  margin: 0.8rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.95rem;
+}
+
+.try-it strong {
+  color: #e65100;
+}
+
+/* ── Key-concept callout boxes ───────────────────────────────── */
+.concept-box {
+  background: #e8f5e9;
+  border-left: 4px solid #2e7d32;
+  padding: 0.8rem 1rem;
+  margin: 0.8rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.95rem;
+}
+
+.concept-box strong {
+  color: #1b5e20;
+}
+
+/* ── Warning / caution boxes ─────────────────────────────────── */
+.warning-box {
+  background: #fce4ec;
+  border-left: 4px solid #c62828;
+  padding: 0.8rem 1rem;
+  margin: 0.8rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.95rem;
+}
+
+.warning-box strong {
+  color: #b71c1c;
+}
+
+/* ── Sticky column: code blocks ──────────────────────────────── */
+.sticky-col-stack pre {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* ── Sticky column: tables ───────────────────────────────────── */
+.sticky-col-stack table {
+  font-size: 0.85rem;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.sticky-col-stack th {
+  background: #1a1a2e;
+  color: #e2e2e2;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+.sticky-col-stack td {
+  padding: 0.3rem 0.6rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.sticky-col-stack tr:nth-child(even) {
+  background: #f5f5f5;
+}
+
+/* ── Feature file styling (three-column TSV look) ────────────── */
+.feature-file pre {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ── Forensic path highlighting ──────────────────────────────── */
+.forensic-path {
+  font-family: 'Consolas', 'Fira Code', monospace;
+  background: #fff3e0;
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+  border: 1px solid #ffe0b2;
+}
+
+/* ── Section intro text ──────────────────────────────────────── */
+.section-intro {
+  font-size: 1.05rem;
+  color: #424242;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* ── Capstone highlight ──────────────────────────────────────── */
+.capstone-box {
+  background: linear-gradient(135deg, #e8eaf6 0%, #e1f5fe 100%);
+  border: 2px solid #3f51b5;
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+  border-radius: 8px;
+}
+
+.capstone-box strong {
+  color: #1a237e;
+}

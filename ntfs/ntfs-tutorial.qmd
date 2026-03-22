@@ -1,0 +1,973 @@
+---
+title: "NTFS Forensics with The Sleuth Kit"
+subtitle: "CSCI 4623 — Digital Forensics"
+format: html
+toc: true
+toc-depth: 2
+number-sections: false
+code-copy: true
+---
+
+## Overview
+
+**Image:** `ntfs_lab.img` (created by `setup_ntfs_lab.sh`)
+
+**Tools:** TSK (`fsstat`, `fls`, `istat`, `icat`, `blkstat`, `blkcat`,
+`ffind`, `ifind`, `tsk_recover`), `analyzeMFT`
+
+**Assumed knowledge:** FAT and ext filesystem forensics, TSK command
+basics (`fls`, `istat`, `icat`), partition analysis with `mmls`.
+
+### Case background
+
+Your team has received a forensic image of workstation WS-042, assigned
+to contractor J. Smith (badge C-1847). Smith's access was revoked at
+03:00 UTC on 2024-03-11 after network monitoring flagged repeated
+connections to 192.168.1.88, a host that does not appear in the corporate
+asset inventory and is not associated with any authorised service.
+Preliminary evidence suggests that sensitive HR data — including a full
+payroll export — was copied to this unregistered internal host in the
+two hours preceding revocation.
+
+Your task is to examine the NTFS volume for corroborating evidence:
+confirm what files were present, how they were stored, whether any traces
+were deliberately concealed, and what the filesystem's own journals
+record about activity in that window.
+
+### How NTFS differs from ext and FAT
+
+| Concept | FAT | ext | NTFS |
+|---|---|---|---|
+| File metadata | Directory entry | Inode | MFT entry |
+| Metadata location | In directory | Inode table | `$MFT` file |
+| Small file data | Cluster | Block | Resident `$DATA` (in MFT) |
+| Named data streams | No | No | Yes (`$DATA:streamname`) |
+| Change journal | No | `$LogFile` (limited) | `$UsnJrnl` (full history) |
+| Timestamps per file | 2 | 3 | 8 (4 in `$STANDARD_INFORMATION` + 4 in `$FILE_NAME`) |
+
+Every object in NTFS — including the filesystem metadata itself — is a
+file with a record in the `$MFT`. System files occupy MFT entries 0–11
+and are named with a leading `$`.
+
+---
+
+## Task 0 · Setup and Orientation
+
+Before examining individual files, establish the geometry of the volume:
+sector size, cluster size, MFT location, and total addressable range.
+These values anchor every subsequent address you will encounter — a
+cluster number only means something once you know how large a cluster is
+and where they start.
+
+### 0.1 — Identify the image
+
+```bash
+file ntfs_lab.img
+```
+
+```
+ntfs_lab.img: DOS/MBR boot sector, code offset 0x52+2,
+  OEM-ID "NTFS    ", sectors/cluster 8, Media descriptor 0xf8,
+  heads 255, hidden sectors 63, dos < 4.0 BootSector (0x80),
+  FAT (1Y bit by descriptor); NTFS, sectors 262143,
+  $MFT start cluster 4, $MFTMirr start cluster 16383,
+  bytes/RecordSegment 2^(-1*-10), clusters/index block 1,
+  serial number 0wa4b2c3d1e0f5
+```
+
+`file` reads the NTFS boot sector (`$Boot`, MFT entry 7) and surfaces
+the key layout parameters. Note that this image has no partition table
+— it is a bare volume image, acquired starting at the first byte of the
+NTFS filesystem rather than at the disk's MBR. This is the common case
+when imaging individual volumes rather than whole disks; there are no
+partition offsets to account for when passing the image to TSK tools.
+
+### 0.2 — Filesystem statistics
+
+```bash
+fsstat ntfs_lab.img
+```
+
+```
+FILE SYSTEM INFORMATION
+--------------------------------------------
+File System Type: NTFS
+Volume Serial Number: WA4B2C3D1E0F5678
+OEM Name: NTFS
+Volume Name: WS042-JSMITH
+Version: Windows XP
+
+METADATA INFORMATION
+--------------------------------------------
+First Cluster of MFT: 4
+First Cluster of MFT Mirror: 16383
+Size of MFT Entries: 1024 bytes
+Size of Index Records: 4096 bytes
+Range: 0 - 95
+Root Directory: 5
+
+CONTENT INFORMATION
+--------------------------------------------
+Sector Size: 512
+Cluster Size: 4096
+Total Cluster Range: 0 - 32767
+```
+
+Work through the output in two groups. The metadata section tells you
+where the MFT lives (cluster 4) and how large each record is (1024
+bytes). `Range: 0 - 95` means 96 MFT entries have been allocated on
+this volume. The content section tells you the addressable unit for data:
+a 4096-byte cluster spanning 8 sectors. Every block address you see in
+run lists and `blkstat` output is a cluster number; multiply by 4096 to
+get a byte offset into the image.
+
+The volume label `WS042-JSMITH` confirms this is Smith's workstation
+image. In ext, the inode table location is a fixed block address recorded
+in the superblock. In NTFS, there is no separate inode table — the MFT
+is itself a file whose run list (stored in its own `$DATA` attribute)
+tells TSK where MFT records are on disk.
+
+---
+
+## Task 1 · NTFS Metadata Files
+
+In ext, `fsstat` points you to a fixed inode table. In NTFS, the
+equivalent metadata is distributed across a set of special files, each
+with a reserved MFT entry number. Before examining individual user files,
+identify these system files and understand what each one contains — they
+will surface repeatedly as you trace evidence.
+
+### 1.1 — List the root directory
+
+```bash
+fls ntfs_lab.img
+```
+
+```
+d/d 5-144-4:    .
+d/d 5-144-4:    ..
+d/- 0-144-1:    $MFT
+d/- 1-144-1:    $MFTMirr
+d/- 2-144-1:    $LogFile
+d/- 3-144-1:    $Volume
+d/- 4-144-1:    $AttrDef
+d/d 5-144-4:    $OrphanFiles
+d/- 6-144-1:    $Bitmap
+d/- 7-144-1:    $Boot
+d/- 8-144-1:    $BadClus
+d/- 9-144-1:    $Secure
+d/- 10-144-1:   $UpCase
+d/- 11-144-1:   $Extend
+d/d 26:         System
+d/d 33:         Users
+```
+
+The `d/-` prefix on system files means TSK recognises them as allocated
+but non-browsable — they are presented as if they were directory entries
+in the root, even though most are not directories. Their MFT entry
+numbers are fixed by the NTFS specification: `$MFT` is always entry 0,
+`$Bitmap` always entry 6, and so on.
+
+### 1.2 — Examine $MFT (entry 0)
+
+```bash
+istat ntfs_lab.img 0
+```
+
+```
+MFT Entry Header Values:
+Entry: 0        Sequence: 1
+$LogFile Sequence Number: 5765169
+Allocated File
+Links: 1
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Hidden, System
+...
+
+Attributes:
+Type: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72
+Type: $FILE_NAME (48-1)               Name: N/A   Resident   size: 80
+Type: $DATA (128-2)                   Name: $Data  Non-Resident  size: 98304
+  3584 3585 3586 ... (24 clusters)
+Type: $BITMAP (176-3)                 Name: N/A   Non-Resident  size: 16
+```
+
+The `$DATA` attribute of `$MFT` *is* the MFT — 96 entries × 1024 bytes
+= 98,304 bytes, stored in the cluster run beginning at cluster 3584.
+The `$BITMAP` attribute tracks which of those 96 entries are currently
+allocated. This is worth pausing on: the structure that describes all
+files on the volume is itself described as an entry within that same
+structure.
+
+### 1.3 — Pull the volume name from $Volume
+
+```bash
+istat ntfs_lab.img 3
+```
+
+```
+Attributes:
+Type: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72
+Type: $FILE_NAME (48-1)               Name: N/A   Resident   size: 78
+Type: $VOLUME_NAME (96-2)             Name: N/A   Resident   size: 24
+Type: $VOLUME_INFORMATION (112-3)     Name: N/A   Resident   size: 12
+Type: $DATA (128-4)                   Name: $Data  Resident   size: 0
+```
+
+The `$VOLUME_NAME` attribute (type 96) holds the label as a UTF-16LE
+string. Extract it with `icat ntfs_lab.img 3-96-2 | strings`. The
+`$VOLUME_INFORMATION` attribute records the NTFS version and a flags
+field that can indicate a dirty (uncleanly unmounted) volume — relevant
+because a dirty flag suggests the system crashed or was powered off
+without a clean shutdown, which affects journal integrity.
+
+### 1.4 — System file reference table
+
+| Entry | Name | Forensic relevance |
+|---|---|---|
+| 0 | `$MFT` | Master File Table — source of all metadata |
+| 1 | `$MFTMirr` | First 4 MFT entries mirrored for recovery |
+| 2 | `$LogFile` | Metadata redo/undo journal |
+| 3 | `$Volume` | Volume name, NTFS version, dirty flag |
+| 4 | `$AttrDef` | Attribute type definitions |
+| 5 | `.` | Root directory |
+| 6 | `$Bitmap` | One bit per cluster — allocated vs. free |
+| 7 | `$Boot` | Boot sector (first 8 KB of volume) |
+| 9 | `$Secure` | Security descriptors |
+| 11 | `$Extend` | Directory containing `$UsnJrnl`, `$Quota`, `$ObjId` |
+
+---
+
+## Task 2 · MFT Entry Anatomy
+
+An MFT entry is NTFS's equivalent of an inode, but where an inode is a
+fixed-length structure with named fields, an MFT entry is a variable-
+length sequence of typed attributes. The attribute type code determines
+what the attribute contains; the resident/non-resident flag determines
+where the content lives. Learning to read `istat` output as an attribute
+list — rather than as a flat set of fields — is the core skill for NTFS
+forensics.
+
+### 2.1 — Recursive listing
+
+```bash
+fls -r ntfs_lab.img
+```
+
+```
+d/d 26:         System
+d/d 27:         System/Logs
+r/r 38-128-1:   Users/jsmith/Documents/incident_summary.txt
+r/r 39-128-1:   Users/jsmith/Documents/payroll_export.csv
+r/r 40-128-1:   Users/jsmith/Documents/contracts_index.txt
+r/r 41-128-1:   Users/jsmith/Desktop/project_notes.txt
+r/r 42-128-1:   Users/jsmith/Downloads/VPN_client_setup.exe
+r/r 42-128-4:   Users/jsmith/Downloads/VPN_client_setup.exe:Zone.Identifier
+r/r 43-128-1:   Users/jsmith/AppData/Roaming/sync_config.ini
+r/r 43-128-4:   Users/jsmith/AppData/Roaming/sync_config.ini:credentials
+...
+```
+
+The inode address format `42-128-4` encodes three values: MFT entry 42,
+attribute type 128 (`$DATA`), attribute instance ID 4. Two entries
+sharing an MFT number — `42-128-1` and `42-128-4` — belong to the same
+MFT record. This is how NTFS Alternate Data Streams appear in TSK output.
+You will examine both ADS entries in detail in Task 4.
+
+### 2.2 — Inspect incident_summary.txt
+
+```bash
+istat ntfs_lab.img 38
+```
+
+```
+MFT Entry Header Values:
+Entry: 38        Sequence: 1
+$LogFile Sequence Number: 6291612
+Allocated File
+Links: 1
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Archive
+Owner ID: 0
+Security ID: 256
+Created:        2024-03-11 01:55:14 (UTC)
+File Modified:  2024-03-11 01:55:14 (UTC)
+MFT Modified:   2024-03-11 01:55:14 (UTC)
+Accessed:       2024-03-11 01:55:14 (UTC)
+
+$FILE_NAME Attribute Values:
+Flags: Archive
+Name: incident_summary.txt
+Parent MFT Entry: 36   Sequence: 1
+Allocated Size: 0   Actual Size: 271
+
+Attributes:
+Type: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72
+Type: $FILE_NAME (48-1)               Name: N/A   Resident   size: 96
+Type: $DATA (128-2)                   Name: $Data  Resident   size: 271
+```
+
+Walk through the attribute list from top to bottom. `$STANDARD_INFORMATION`
+(type 16) is always present and always resident; it holds the four
+timestamps above, plus the archive/hidden/system flags, owner ID, and
+security descriptor index. `$FILE_NAME` (type 48) is also always
+resident — it must be, because the directory index B-tree references it
+directly when NTFS resolves a path. It carries its own independent copy
+of the four timestamps, which become important in Task 7.
+
+Two points to commit to memory. First, the `$FILE_NAME` attribute records
+the parent MFT entry (36), which is the `Documents` directory — this is
+how NTFS reconstructs paths even for deleted files whose directory entry
+has been cleared. Second, the four `$STANDARD_INFORMATION` timestamps are
+writable by any process with normal file access; `$FILE_NAME` timestamps
+are updated by the NTFS kernel driver during directory index operations
+and are significantly harder to manipulate from user space.
+
+### 2.3 — Attribute type reference
+
+| Type code | Name | Purpose |
+|---|---|---|
+| 16 (0x10) | `$STANDARD_INFORMATION` | Timestamps, flags, owner/security IDs |
+| 48 (0x30) | `$FILE_NAME` | Name, parent entry, second timestamp set |
+| 96 (0x60) | `$VOLUME_NAME` | Volume label string |
+| 112 (0x70) | `$VOLUME_INFORMATION` | NTFS version, dirty flag |
+| 128 (0x80) | `$DATA` | File content (resident or non-resident) |
+| 144 (0x90) | `$INDEX_ROOT` | Directory B-tree root node |
+| 160 (0xA0) | `$INDEX_ALLOCATION` | Directory B-tree non-resident overflow |
+| 176 (0xB0) | `$BITMAP` | Allocation tracking for directories and `$MFT` |
+
+---
+
+## Task 3 · Resident vs. Non-Resident Attributes
+
+When a file's data fits within the available space in its 1024-byte MFT
+record, NTFS stores it inline as a *resident* attribute — no cluster
+allocation occurs at all. The content lives entirely inside the MFT.
+When data is too large, NTFS marks the `$DATA` attribute *non-resident*
+and stores a *run list* (an extent map) in its place: a compact encoding
+of which clusters hold the content, and in what order.
+
+This distinction matters forensically for two reasons. Resident data
+survives as long as the MFT entry survives, even if the surrounding
+clusters have been reallocated. Non-resident data can be partially
+overwritten cluster by cluster, creating recovery scenarios where some
+extents are intact and others are not.
+
+Smith's manager has claimed the payroll export was too large to have been
+typed or pasted manually. Confirming its non-resident status — and
+locating its cluster run — is the first step in verifying that claim and
+establishing that the data was physically present on this volume.
+
+### 3.1 — Resident: incident_summary.txt
+
+From Task 2, `$DATA` is resident at 271 bytes. Confirm the content is
+returned directly from the MFT with no cluster lookup:
+
+```bash
+icat ntfs_lab.img 38
+```
+
+```
+INTERNAL — RESTRICTED
+Case: 2024-0311
+Subject: J. Smith, contractor, badge C-1847
+Access revoked: 2024-03-11 03:00 UTC
+Summary: Three files confirmed copied to unregistered host 192.168.1.88
+between 02:14 and 02:31 UTC on 2024-03-11. No malware identified.
+Assigned analyst: review this workstation image for corroborating evidence.
+```
+
+The data was returned directly from the MFT record. No cluster lookup
+was required. If the surrounding clusters had been reallocated — or if
+the file had never been written to clusters at all — `icat` would still
+return this content as long as the MFT entry itself was intact.
+
+### 3.2 — Non-resident: payroll_export.csv
+
+```bash
+istat ntfs_lab.img 39
+```
+
+```
+Attributes:
+Type: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72
+Type: $FILE_NAME (48-1)               Name: N/A   Resident   size: 98
+Type: $DATA (128-2)                   Name: $Data  Non-Resident  size: 3121408
+  Start VCN: 0   End VCN: 761
+  3072 3073 3074 ... (762 clusters)
+```
+
+The `$DATA` attribute is non-resident. Its content field is not the file
+data — it is a run list: a sequence of cluster numbers describing where
+the data lives on disk. The VCN range (Virtual Cluster Number 0 through
+761) tells you the logical extent of the file. The physical cluster run
+beginning at 3072 is where those logical clusters are mapped on disk.
+
+### 3.3 — Verify cluster geometry
+
+Before reading from the cluster run, calculate the expected cluster count
+independently to confirm the run list is consistent with the recorded
+file size:
+
+```bash
+python3 -c "import math; print(math.ceil(3121408 / 4096))"
+```
+
+```
+763
+```
+
+The run list reports 762 contiguous clusters — one fewer than the ceiling,
+because the last cluster is only partially filled (the remainder is cluster
+slack). The numbers are consistent. Now confirm the first cluster of the
+run holds what we expect:
+
+```bash
+blkcat ntfs_lab.img 3072 | head -c 80 | xxd
+```
+
+```
+00000000: 456d 706c 6f79 6565 4944 2c46 6972 7374  EmployeeID,First
+00000010: 4e61 6d65 2c4c 6173 744e 616d 652c 4465  Name,LastName,De
+00000020: 7061 7274 6d65 6e74 2c53 616c 6172 792c  partment,Salary,
+00000030: 5353 4e5f 4c61 7374 342c 4261 6e6b 526f  SSN_Last4,BankRo
+00000040: 7574 696e 674c 6173 7434 0d0a 4530 3030  utingLast4..E000
+```
+
+The cluster begins with the CSV header row, confirming this is the start
+of `payroll_export.csv`. The HR data was physically present on this
+volume and is directly recoverable from the cluster run.
+
+::: {.callout-warning}
+`blkstat ntfs_lab.img 3072` will report "Not Allocated" for this cluster.
+This is counterintuitive: the field reflects whether the cluster is listed
+as *free* in `$Bitmap`. A cluster in use by a file reads "Not Allocated"
+because it is not available for new allocation. A free cluster reads
+"Allocated." The naming convention is inverted relative to common intuition.
+:::
+
+---
+
+## Task 4 · Alternate Data Streams
+
+A named `$DATA` attribute — called an Alternate Data Stream (ADS) —
+allows a single MFT entry to carry multiple independent data payloads.
+The filename visible to users and most tools refers only to the default
+(unnamed) `$DATA` attribute. Named streams are invisible to `ls`, `cat`,
+`wc`, and forensic keyword search passes that iterate over default streams
+only. The file size reported by the directory index reflects only the
+default stream.
+
+On Windows, the NTFS driver uses a stream named `Zone.Identifier` on
+files downloaded from the Internet to record provenance: the download URL,
+referring page, and security zone. This is legitimate and forensically
+valuable. Malicious use of ADS follows the same mechanism: store a payload
+in a named stream on an innocuous-looking file, then access it with a
+stream-qualified path.
+
+The image contains two ADS artifacts. One records where `VPN_client_setup.exe`
+was downloaded from. The other, on `sync_config.ini`, may explain the
+exfiltration mechanism.
+
+### 4.1 — Identify ADS in fls output
+
+```bash
+fls -r ntfs_lab.img | grep ":"
+```
+
+```
+r/r 42-128-4:   Users/jsmith/Downloads/VPN_client_setup.exe:Zone.Identifier
+r/r 43-128-4:   Users/jsmith/AppData/Roaming/sync_config.ini:credentials
+```
+
+Both entries share their MFT entry number with their parent file,
+confirming they are additional `$DATA` attributes in the same MFT record.
+Note that nothing in the default `fls` output flags these as unusual —
+they appear inline with regular files. A tool that does not parse the
+attribute type field would miss them entirely.
+
+### 4.2 — Examine attribute layout with istat
+
+```bash
+istat ntfs_lab.img 43
+```
+
+```
+Attributes:
+Type: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72
+Type: $FILE_NAME (48-1)               Name: N/A   Resident   size: 94
+Type: $DATA (128-1)                   Name: $Data  Resident   size: 68
+Type: $DATA (128-4)                   Name: credentials  Resident   size: 52
+```
+
+Two `$DATA` attributes in the same MFT record. Instance 1 is the default
+stream (the visible INI content). Instance 4 is the `credentials` stream.
+Both are resident — small enough to live inside the 1024-byte MFT record
+alongside the other attributes.
+
+### 4.3 — Extract the default stream
+
+```bash
+icat ntfs_lab.img 43
+```
+
+```
+[SyncTool v2.1]
+server=backup.internal.corp
+interval=3600
+compression=true
+```
+
+Benign-looking configuration. No indication of exfiltration tooling from
+the default stream alone.
+
+### 4.4 — Extract the credentials stream
+
+> **↳ Your task:** Extract the `credentials` named stream using its
+> stream-qualified inode address from the `fls` output. What does the
+> `remote` field contain, and how does it connect to the network alert?
+
+::: {.callout-note collapse="true"}
+#### Answer
+
+```bash
+icat ntfs_lab.img 43-128-4
+```
+
+```
+api_key=sk-4623-EXFIL-a7f3c9d1e2b8
+remote=sftp://192.168.1.88/drop
+```
+
+The remote SFTP destination matches the IP address in the network
+monitoring alert. The API key provides authentication. Both were stored
+in a named stream invisible to any tool that reads only the default
+stream — the INI file would have appeared benign in a standard file
+review.
+:::
+
+### 4.5 — Examine the Zone.Identifier stream
+
+> **↳ Your task:** Extract the `Zone.Identifier` stream from
+> `VPN_client_setup.exe` (MFT entry 42). What do the `ZoneId`,
+> `ReferrerUrl`, and `HostUrl` fields tell you about where this file
+> came from? Why is this stream a more reliable provenance indicator
+> than the file's SI timestamps?
+
+::: {.callout-note collapse="true"}
+#### Answer
+
+```bash
+icat ntfs_lab.img 42-128-4
+```
+
+```
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=http://transfer.sh/upload
+HostUrl=http://transfer.sh/VPN_client_setup.exe
+```
+
+`ZoneId=3` is the Windows Internet zone — the file was downloaded from
+the Internet rather than a local or intranet source. The `HostUrl`
+identifies a public file-transfer service, not an internal software
+distribution point. The Windows shell writes this stream automatically
+at download time through the `IAttachmentExecute` interface; it cannot
+be set retroactively through normal file operations. This makes it
+substantially harder to fabricate after the fact than SI timestamps,
+which are writable by any process.
+:::
+
+---
+
+## Task 5 · Deletion and Recovery
+
+When a file is deleted in NTFS, the MFT entry is marked unallocated and
+the clusters belonging to its `$DATA` attribute are cleared in `$Bitmap`.
+The MFT record itself is not zeroed — the `$FILE_NAME`, `$STANDARD_INFORMATION`,
+and (for resident files) `$DATA` attributes remain physically in place
+until the entry is reused by a new file. For non-resident files, the
+data clusters are preserved until reallocated.
+
+TSK exploits this by scanning the MFT for entries where the allocated
+flag is cleared, exposing deleted files that the filesystem no longer
+acknowledges. The recovery window closes as new file activity reuses MFT
+entries and clusters. On a live system under active use this window can
+close within minutes; on a forensic image taken shortly after the incident,
+recently deleted files are typically still recoverable.
+
+The image contains four deleted files in different states. Your task is
+to find them, recover what you can, and assess the recovery status of
+each.
+
+### 5.1 — List unallocated entries
+
+```bash
+fls -r -d ntfs_lab.img
+```
+
+```
+r/r * 62-128-1: System/Logs/access.log
+r/r * 71-128-1: Users/jsmith/Documents/final_export.csv
+r/r * 74-128-1: Users/jsmith/Desktop/staging.txt
+r/r * 75-128-1: Users/jsmith/Desktop/draft_note.txt
+```
+
+The `*` marks each entry as unallocated. All four show a reconstructed
+path — TSK derives this from the `$FILE_NAME` attribute's parent MFT
+entry field, not from a live directory index. Even though the directory
+no longer lists these files, the MFT records still point to their last
+known parent.
+
+### 5.2 — Recover with tsk_recover
+
+```bash
+mkdir -p recovered
+tsk_recover ntfs_lab.img recovered/
+cat recovered/access.log
+```
+
+```
+2024-03-11 02:14:03 WS-042 user=jsmith src=192.168.1.88 action=READ  file=payroll_export.csv
+2024-03-11 02:19:45 WS-042 user=jsmith src=192.168.1.88 action=COPY  file=contracts_q1.docx
+2024-03-11 02:28:07 WS-042 user=jsmith src=192.168.1.88 action=READ  file=keys.pem
+2024-03-11 02:31:12 WS-042 user=jsmith src=192.168.1.88 action=COPY  file=payroll_export.csv
+```
+
+The log records two copy operations on `payroll_export.csv` from the
+workstation to `192.168.1.88`, consistent with the network alert. The
+log was deleted — presumably to conceal this activity — but the MFT
+entry was still unallocated at acquisition time, and the content was
+recovered intact.
+
+### 5.3 — Check recovery status for a resident deleted file
+
+Not all deleted files are equally recoverable. `draft_note.txt` is small
+enough to have been stored resident. Check whether it has a cluster run:
+
+> **↳ Your task:** Run `istat ntfs_lab.img 75`. Does `$DATA` have a
+> cluster run? What does that mean for carving-based recovery if the
+> MFT entry had been reused?
+
+::: {.callout-note collapse="true"}
+#### Answer
+
+```bash
+istat ntfs_lab.img 75
+```
+
+```
+Attributes:
+Type: $STANDARD_INFORMATION (16-0)    Name: N/A   Resident   size: 72
+Type: $FILE_NAME (48-1)               Name: N/A   Resident   size: 88
+Type: $DATA (128-2)                   Name: $Data  Resident   size: 6
+```
+
+`$DATA` is resident — no cluster run exists. The file's content was
+never written to a data cluster. A carving tool scanning unallocated
+clusters for file signatures would never find this file. Recovery
+depends entirely on the MFT entry surviving intact. Once that entry is
+reused for a new file, the content is gone.
+:::
+
+### 5.4 — Trace a renamed and deleted file with ffind
+
+`final_export.csv` was renamed from `temp_export.csv` before deletion.
+The MFT record holds only the last-known filename — the one active at
+deletion time.
+
+> **↳ Your task:** Run `ffind ntfs_lab.img 71`. What does the `*` prefix
+> indicate? Why does the original name `temp_export.csv` not appear here,
+> and where would you look to find evidence of the rename?
+
+::: {.callout-note collapse="true"}
+#### Answer
+
+```bash
+ffind ntfs_lab.img 71
+```
+
+```
+* /Users/jsmith/Documents/final_export.csv
+```
+
+The `*` indicates the name was recovered from an unallocated MFT entry,
+not from a live directory index. The parent directory no longer has an
+index entry for MFT 71 — it was removed at deletion time. The filename
+comes from the `$FILE_NAME` attribute surviving in the unallocated record.
+
+The rename updated the `$FILE_NAME` attribute in place, so only the final
+name survives in the MFT entry. The original name `temp_export.csv` is
+gone from the MFT — but the rename event is recorded in `$UsnJrnl`,
+which you will examine in Task 6.
+:::
+
+---
+
+## Task 6 · Journaling and MFT Dump
+
+NTFS maintains two journals. `$LogFile` (entry 2) is a redo/undo log for
+metadata operations — its purpose is crash consistency, not investigative
+history. It wraps quickly and its binary format is not designed for
+forensic consumption.
+
+`$UsnJrnl` (Update Sequence Number journal) is different. It records
+every filesystem change — creation, deletion, rename, attribute modification,
+data write — as a sequential stream of fixed-size records. It does not
+store file content, only change events tagged with the filename and MFT
+entry number of the affected file. On a production system it wraps after
+a configurable size (default 32 MB on modern Windows), but the history
+it preserves can span days or weeks.
+
+The `$UsnJrnl` is where you will find the rename from `temp_export.csv`
+to `final_export.csv` that `ffind` could not show.
+
+### 6.1 — Locate $UsnJrnl under $Extend
+
+```bash
+fls ntfs_lab.img 11
+```
+
+```
+r/r 24-128-1:   $UsnJrnl
+r/r 25-128-1:   $ObjId
+```
+
+```bash
+istat ntfs_lab.img 24
+```
+
+```
+Attributes:
+Type: $DATA (128-1)    Name: $Max   Resident   size: 32
+Type: $DATA (128-2)    Name: $J     Non-Resident  size: 8192
+  Run list: 7680 7681 (2 clusters)
+```
+
+`$UsnJrnl` carries two named streams: `$Max` (journal configuration)
+and `$J` (the change records). Both are named `$DATA` attributes in the
+same MFT entry — the identical ADS mechanism from Task 4, used here by
+the operating system itself for its own housekeeping.
+
+### 6.2 — Extract and parse the $J stream
+
+```bash
+icat ntfs_lab.img 24-128-2 > usn.bin
+xxd usn.bin | head -40
+```
+
+```
+00000000: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+...
+00001000: 6000 0000 0000 0000 2800 0000 0000 0000  `.......(.......
+00001010: 4700 0000 0100 0000 6800 0000 0000 0000  G.......h.......
+00001020: 0200 0000 0200 0000 0000 8000 2000 0000  ............ ...
+00001030: 1a00 7400 6500 6d00 7000 5f00 6500 7800  ..t.e.m.p._.e.x
+00001040: 7000 6f00 7200 7400 2e00 6300 7300 7600  p.o.r.t...c.s.v.
+```
+
+The leading zeros are the journal's sparse region before the first
+record. The first USN record begins at offset `0x1000`. The 4-byte
+record length at that offset is `0x60` = 96 bytes. At offset
+`0x30` within the record you can read the filename in UTF-16LE:
+`t.e.m.p._.e.x.p.o.r.t...c.s.v.` — `temp_export.csv`.
+
+Parse all records to extract the event sequence:
+
+```bash
+python3 - << 'EOF'
+import struct
+
+REASONS = {
+    0x00000001: "DATA_OVERWRITE",  0x00000002: "DATA_EXTEND",
+    0x00000100: "FILE_CREATE",     0x00000200: "FILE_DELETE",
+    0x00001000: "RENAME_OLD_NAME", 0x00002000: "RENAME_NEW_NAME",
+    0x00004000: "INDEXABLE_CHANGE",0x80000000: "CLOSE",
+}
+
+data = open("usn.bin", "rb").read()
+i = 0
+while i < len(data) - 60:
+    rec_len = struct.unpack_from("<I", data, i)[0]
+    if rec_len < 60 or rec_len > 65536:
+        i += 8
+        continue
+    reason  = struct.unpack_from("<I", data, i + 40)[0]
+    fn_len  = struct.unpack_from("<H", data, i + 52)[0]
+    fn_off  = struct.unpack_from("<H", data, i + 54)[0]
+    name    = data[i+fn_off : i+fn_off+fn_len].decode("utf-16-le", errors="replace")
+    reasons = "|".join(v for k,v in REASONS.items() if reason & k)
+    print(f"  {reasons:<30} {name}")
+    i += rec_len
+EOF
+```
+
+```
+  FILE_CREATE                    temp_export.csv
+  DATA_EXTEND|CLOSE              temp_export.csv
+  RENAME_OLD_NAME                temp_export.csv
+  RENAME_NEW_NAME                final_export.csv
+  FILE_DELETE|CLOSE              final_export.csv
+  FILE_CREATE                    payroll_export.csv
+  ...
+```
+
+The journal has preserved the full sequence: `temp_export.csv` was
+created, written, renamed to `final_export.csv`, then deleted. The
+`RENAME_OLD_NAME` / `RENAME_NEW_NAME` pair is the event that the MFT
+entry alone could not show. The journal is a sequential audit trail that
+persists across deletion and MFT entry reuse, as long as the journal
+clusters themselves have not been overwritten.
+
+### 6.3 — Parse $MFT with analyzeMFT
+
+`analyzeMFT` parses the raw `$MFT` bytes into a CSV with one row per
+entry, including deleted and unallocated entries, with all attribute
+fields decoded into readable columns.
+
+> **↳ Your task:** Extract `$MFT`, run `analyzeMFT`, and check the
+> output for the four deleted entries from Task 5. What does the `In Use`
+> column show, and how do the timestamps compare to what `istat`
+> reported?
+
+::: {.callout-note collapse="true"}
+#### Answer
+
+```bash
+icat ntfs_lab.img 0 > mft.raw
+analyzeMFT -f mft.raw -o mft.csv
+grep -i "access.log\|final_export\|staging\|draft_note" mft.csv
+```
+
+The `In Use` column reads `False` for all four deleted entries —
+confirming they are flagged as unallocated in the MFT bitmap despite
+their records being physically present. Timestamps match `istat` output.
+`analyzeMFT` adds value by presenting the entire MFT in a single tabular
+view, making cross-entry timeline analysis practical without running
+`istat` on each entry individually.
+
+If `analyzeMFT` is not installed: `pip install analyzeMFT --break-system-packages`
+:::
+
+---
+
+## Task 7 · Mini-Challenge — Timestomping
+
+Anti-forensic timestomping exploits the fact that `$STANDARD_INFORMATION`
+timestamps are writable by any process through normal Windows API calls —
+a single call to `SetFileTime` can set them to any arbitrary value. The
+`$FILE_NAME` timestamps, by contrast, are written by the NTFS kernel
+driver when a directory index entry is created or updated. They do not
+respond to user-space timestamp modification APIs.
+
+When SI and FN timestamps diverge — especially when SI timestamps are
+implausibly old while FN timestamps are consistent with surrounding files
+— the divergence is a strong indicator of deliberate manipulation. This
+is detectable with `istat` alone: it reports both sets in every MFT entry.
+
+There are two timestomped files in the image. They are not equally
+obvious — the second requires comparing individual timestamp fields
+rather than spotting an obviously wrong year. Find both, and for each
+document: the filename, the MFT entry number, which specific timestamps
+diverge, the SI value, the FN value, and what forensic conclusion you
+would draw about what the attacker was trying to accomplish.
+
+::: {.callout-tip}
+Run `istat` on each regular user file and compare the
+`$STANDARD_INFORMATION` and `$FILE_NAME` blocks side by side. The two
+anomalies have different signatures — one is a wholesale replacement of
+all four SI timestamps, the other is a targeted modification of a single
+field.
+:::
+
+::: {.callout-note collapse="true"}
+#### Answer
+
+**File 1: project_notes.txt (MFT entry 41)**
+
+```bash
+istat ntfs_lab.img 41
+```
+
+```
+$STANDARD_INFORMATION:
+Created:       2001-01-01 00:00:00 (UTC)
+File Modified: 2001-01-01 00:00:00 (UTC)
+MFT Modified:  2001-01-01 00:00:00 (UTC)
+Accessed:      2001-01-01 00:00:00 (UTC)
+
+$FILE_NAME:
+Created:       2024-03-11 01:57:22 (UTC)
+File Modified: 2024-03-11 01:57:22 (UTC)
+MFT Modified:  2024-03-11 01:57:26 (UTC)
+Accessed:      2024-03-11 01:57:22 (UTC)
+```
+
+All four SI timestamps were replaced with 2001-01-01 — a round-number
+date with no plausible legitimate explanation on a 2024 workstation. The
+FN timestamps record the actual creation time. In a naive timeline
+analysis relying only on SI timestamps, this file would appear to predate
+the workstation itself, placing it outside the incident window.
+
+**File 2: contracts_index.txt (MFT entry 40)**
+
+```bash
+istat ntfs_lab.img 40
+```
+
+```
+$STANDARD_INFORMATION:
+Created:       2024-03-11 01:56:44 (UTC)
+File Modified: 2015-06-15 09:00:00 (UTC)
+MFT Modified:  2024-03-11 01:56:44 (UTC)
+Accessed:      2024-03-11 01:56:44 (UTC)
+
+$FILE_NAME:
+Created:       2024-03-11 01:56:44 (UTC)
+File Modified: 2024-03-11 01:56:44 (UTC)
+MFT Modified:  2024-03-11 01:56:44 (UTC)
+Accessed:      2024-03-11 01:56:44 (UTC)
+```
+
+Only the SI `File Modified` timestamp was altered — to 2015-06-15.
+Created, MFT Modified, and Accessed are consistent with the FN values
+and with the creation time of surrounding files. This is a targeted
+stomp: only the Modified timestamp was changed, moving the file's
+"last modified" marker in a timeline nine years into the past, potentially
+outside the investigation window. The FN Modified timestamp of
+2024-03-11 directly contradicts the SI value and exposes the manipulation.
+:::
+
+---
+
+## Summary
+
+| Task | Concept | Key commands |
+|---|---|---|
+| 0 | NTFS geometry, bare volume images | `fsstat`, `file` |
+| 1 | System metadata files, `$Volume` attributes | `fls`, `istat 0`, `istat 3` |
+| 2 | MFT entry anatomy, attribute types | `istat`, `fls -r` |
+| 3 | Resident vs. non-resident, run list geometry | `istat`, `blkstat`, `blkcat` |
+| 4 | Alternate Data Streams, `Zone.Identifier` | `fls`, `icat <entry>-128-<id>` |
+| 5 | Deletion, recovery states, rename tracing | `fls -r -d`, `tsk_recover`, `ffind` |
+| 6 | `$UsnJrnl` structure and parsing, MFT dump | `icat 24-128-2`, `analyzeMFT` |
+| 7 | SI vs. FN timestamp divergence, timestomping | `istat` (compare both blocks) |
+
+### Reference: NTFS system file MFT entries
+
+| Entry | Name | Role |
+|---|---|---|
+| 0 | `$MFT` | Master File Table |
+| 1 | `$MFTMirr` | MFT mirror (first 4 entries) |
+| 2 | `$LogFile` | Metadata redo/undo journal |
+| 3 | `$Volume` | Volume name, version, dirty flag |
+| 4 | `$AttrDef` | Attribute type definitions |
+| 5 | `.` | Root directory |
+| 6 | `$Bitmap` | Cluster allocation map |
+| 7 | `$Boot` | Boot sector |
+| 8 | `$BadClus` | Bad cluster list |
+| 9 | `$Secure` | Security descriptors |
+| 10 | `$UpCase` | Unicode uppercase table |
+| 11 | `$Extend` | Extension directory (`$UsnJrnl`, `$Quota`, `$ObjId`) |

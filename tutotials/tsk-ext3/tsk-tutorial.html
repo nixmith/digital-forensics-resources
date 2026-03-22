@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Intro TSK Tutorial (ext3)</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="tsk-tutorial_files/libs/clipboard/clipboard.min.js"></script>
+<script src="tsk-tutorial_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="tsk-tutorial_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="tsk-tutorial_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="tsk-tutorial_files/libs/quarto-html/popper.min.js"></script>
+<script src="tsk-tutorial_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="tsk-tutorial_files/libs/quarto-html/anchor.min.js"></script>
+<link href="tsk-tutorial_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="tsk-tutorial_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="tsk-tutorial_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="tsk-tutorial_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="tsk-tutorial_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="tsk-tutorial_files/libs/quarto-contrib/intersection-observer-polyfill-1.0.0/intersection-observer.js"></script>
+<script src="tsk-tutorial_files/libs/quarto-contrib/scrollama-3.2.0/scrollama.min.js"></script>
+<script src="tsk-tutorial_files/libs/quarto-contrib/closeread-0.1.0/closeread.js"></script>
+<meta cr-debug-mode="false">
+<meta cr-remove-header-space="false">
+
+
+<link rel="stylesheet" href="_extensions/qmd-lab/closeread/closeread.css">
+<link rel="stylesheet" href="tsk-styles.css">
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-full">
+
+<main class="content column-page" id="quarto-document-content">
+      <!-- user-provided yaml closeread style options -->
+      <style>
+        :root {
+          --cr-section-background-color: #ffffff;
+--cr-narrative-text-color-sidebar: #1a1a2e;
+--cr-narrative-background-color-sidebar: #f8f9fa;
+--cr-narrative-sidebar-width: 2fr;
+        }
+      </style>
+    
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Intro TSK Tutorial (ext3)</h1>
+<p class="subtitle lead">CSCI 4623 — Digital Forensics</p>
+</div>
+
+
+
+<div class="quarto-title-meta column-page">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="tutorial-meta">
+<strong>Estimated Time:</strong> 60–75 minutes &nbsp;|&nbsp;
+<strong>Prerequisites:</strong> Linux with The Sleuth Kit installed (<code>apt install sleuthkit</code>), root/sudo access &nbsp;|&nbsp;
+<strong>Setup Script:</strong> <a href="setup_ext3_lab.sh" download="">setup_ext3_lab.sh</a>
+</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>The Sleuth Kit (TSK) is an open-source collection of command-line tools for forensic analysis of disk images and filesystems. In this tutorial you will build a practice image with two partitions and known content, then work through TSK commands layer by layer — from volume analysis down to individual blocks — verifying each tool’s output against raw hex. Later tasks chain tool outputs together and build toward realistic forensic exercises.</p>
+<p>Every TSK command follows a consistent naming convention: the <strong>prefix</strong> tells you the layer and the <strong>suffix</strong> tells you the operation.</p>
+<!-- ============================================================ -->
+<!-- TASK 0: TSK NAMING CONVENTION                                -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">TSK Naming Convention</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-layer-table">
+<div class="narrative">
+<p>The Sleuth Kit organizes its tools into layers. Each prefix maps to a forensic abstraction — from the raw image container down to individual data blocks.</p>
+<p>The suffix tells you the operation: <code>stat</code> = show metadata, <code>ls</code> = list entries, <code>cat</code> = extract content, <code>find</code> = search or resolve names.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-highlight="3,5" data-focus-on="cr-layer-table">
+<div class="narrative">
+<p>For example, <code>mmls</code> is <strong>m</strong>edia <strong>m</strong>anagement + <strong>l</strong>i<strong>s</strong>t — it lists partitions. <code>icat</code> is <strong>i</strong>node + <strong>cat</strong> — it extracts file content by inode number.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-highlight="3,4,5,6" data-focus-on="cr-layer-table">
+<div class="narrative">
+<p>Nearly every command after <code>img_stat</code> takes an <code>-o</code> flag specifying the <strong>sector offset</strong> to the partition. You will see this pattern repeatedly.</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-layer-table" class="sticky">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Prefix</th>
+<th>Layer</th>
+<th>Operations</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>img</code></td>
+<td>Image file</td>
+<td><code>img_stat</code></td>
+</tr>
+<tr class="even">
+<td><code>mm</code></td>
+<td>Media management (partitions)</td>
+<td><code>mmls</code>, <code>mmcat</code></td>
+</tr>
+<tr class="odd">
+<td><code>fs</code></td>
+<td>Filesystem</td>
+<td><code>fsstat</code>, <code>fls</code></td>
+</tr>
+<tr class="even">
+<td><code>i</code></td>
+<td>Inode / metadata</td>
+<td><code>istat</code>, <code>icat</code>, <code>ifind</code></td>
+</tr>
+<tr class="odd">
+<td><code>blk</code></td>
+<td>Data unit (block)</td>
+<td><code>blkstat</code>, <code>blkcat</code>, <code>blkls</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- SETUP SCRIPT                                                 -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 0: Build the Practice Image</h2></div>
+<p>The setup script creates a 128 MiB raw disk image with <strong>two ext3 partitions</strong>. It populates partition 1 with files in three directories, copies some to partition 2 as a “USB backup,” then deletes four files to create recovery targets. <a href="setup_ext3_lab.sh">Download the script directly</a>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># setup_ext3_lab.sh — Create a 128M forensic practice image (two partitions)</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">-euo</span> pipefail</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="va">IMG</span><span class="op">=</span><span class="st">"ext3_lab.dd"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="va">MNT1</span><span class="op">=</span><span class="st">"/mnt/ext3_lab_p1"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="va">MNT2</span><span class="op">=</span><span class="st">"/mnt/ext3_lab_p2"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">dd</span> if=/dev/zero of=<span class="st">"</span><span class="va">$IMG</span><span class="st">"</span> bs=1M count=128 status=none</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ex">sfdisk</span> <span class="at">--quiet</span> <span class="st">"</span><span class="va">$IMG</span><span class="st">"</span> <span class="op">&lt;&lt;EOF</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="st">label: dos</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="st">start=2048, size=129024, type=83</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="st">start=131072, type=83</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="va">LOOP1</span><span class="op">=</span><span class="va">$(</span><span class="ex">losetup</span> <span class="at">--find</span> <span class="at">--show</span> <span class="at">--offset</span> <span class="va">$((</span><span class="dv">2048</span><span class="op">*</span><span class="dv">512</span><span class="va">))</span> <span class="at">--sizelimit</span> <span class="va">$((</span><span class="dv">129024</span><span class="op">*</span><span class="dv">512</span><span class="va">))</span> <span class="st">"</span><span class="va">$IMG</span><span class="st">"</span><span class="va">)</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="va">LOOP2</span><span class="op">=</span><span class="va">$(</span><span class="ex">losetup</span> <span class="at">--find</span> <span class="at">--show</span> <span class="at">--offset</span> <span class="va">$((</span><span class="dv">131072</span><span class="op">*</span><span class="dv">512</span><span class="va">))</span> <span class="st">"</span><span class="va">$IMG</span><span class="st">"</span><span class="va">)</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="ex">mkfs.ext3</span> <span class="at">-L</span> <span class="st">"evidence_vol"</span> <span class="at">-q</span> <span class="st">"</span><span class="va">$LOOP1</span><span class="st">"</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="ex">mkfs.ext3</span> <span class="at">-L</span> <span class="st">"usb_backup"</span>   <span class="at">-q</span> <span class="st">"</span><span class="va">$LOOP2</span><span class="st">"</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">"</span> <span class="st">"</span><span class="va">$MNT2</span><span class="st">"</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">mount</span> <span class="st">"</span><span class="va">$LOOP1</span><span class="st">"</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">"</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">mount</span> <span class="st">"</span><span class="va">$LOOP2</span><span class="st">"</span> <span class="st">"</span><span class="va">$MNT2</span><span class="st">"</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Phase 1-3: create files with sleep gaps for timeline separation</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"The quick brown fox jumps over the lazy dog."</span> <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/readme.txt"</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/documents"</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"SSN: 078-05-1120 (original SS-5 sample)"</span> <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/documents/pii_sample.txt"</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"Contract value: </span><span class="dt">\$</span><span class="st">4,500,000. Effective 2025-03-01."</span> <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/documents/contract.txt"</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="fu">sync</span><span class="kw">;</span> <span class="fu">sleep</span> 2</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/projects"</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"Project ATLAS: Phase 2 approved. Budget </span><span class="dt">\$</span><span class="st">1.2M. Lead: J. Chen."</span> <span class="dt">\</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>  <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/projects/atlas_status.txt"</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"Meeting 06/15: merger timeline with legal. NDA expires July 1."</span> <span class="dt">\</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/projects/meeting_notes.txt"</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="fu">sync</span><span class="kw">;</span> <span class="fu">sleep</span> 2</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/personal"</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"Flight: LAX→JFK Mar 15 2025, seat 12A, conf# BK7942"</span> <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/personal/travel.txt"</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"Password reminder: bank pin 4421, backup code XKCD-9371"</span> <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/personal/passwords.txt"</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"Reminder: pick up prescription Tuesday"</span> <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/personal/todo.txt"</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="fu">sync</span><span class="kw">;</span> <span class="fu">sleep</span> 2</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="co"># Phase 4: copy to "USB backup" partition, leave a transfer log</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/documents/contract.txt"</span>       <span class="st">"</span><span class="va">$MNT2</span><span class="st">/contract_backup.txt"</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/projects/atlas_status.txt"</span>    <span class="st">"</span><span class="va">$MNT2</span><span class="st">/atlas_backup.txt"</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"Backup </span><span class="va">$(</span><span class="fu">date</span> <span class="at">-u</span> +%Y-%m-%d<span class="va">)</span><span class="st">: contract.txt, atlas_status.txt"</span> <span class="dt">\</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>  <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT2</span><span class="st">/backup_manifest.txt"</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"Sensitive files copied to USB backup (partition 2)."</span> <span class="dt">\</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>  <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/documents/transfer_log.txt"</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="fu">sync</span><span class="kw">;</span> <span class="fu">sleep</span> 2</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="co"># Phase 5: create one more file then delete four</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"SECRET: The meeting is at midnight, east dock."</span> <span class="op">&gt;</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/deleted_note.txt"</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="fu">sync</span><span class="kw">;</span> <span class="fu">sleep</span> 1</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="co"># (script prints inode/md5 table for each file before deleting)</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/deleted_note.txt"</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/personal/passwords.txt"</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/projects/atlas_status.txt"</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">/projects/meeting_notes.txt"</span></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="fu">sync</span></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="fu">umount</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">"</span><span class="kw">;</span> <span class="fu">umount</span> <span class="st">"</span><span class="va">$MNT2</span><span class="st">"</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="ex">losetup</span> <span class="at">-d</span> <span class="st">"</span><span class="va">$LOOP1</span><span class="st">"</span><span class="kw">;</span> <span class="ex">losetup</span> <span class="at">-d</span> <span class="st">"</span><span class="va">$LOOP2</span><span class="st">"</span></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a><span class="fu">rmdir</span> <span class="st">"</span><span class="va">$MNT1</span><span class="st">"</span> <span class="st">"</span><span class="va">$MNT2</span><span class="st">"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Run with <code>sudo bash setup_ext3_lab.sh</code>. The script prints a reference table with inode numbers and MD5 hashes for the four deleted files — <strong>save this output</strong>, you will need it for Tasks 9 and 11.</p>
+<!-- ============================================================ -->
+<!-- TASK 1: IMAGE LAYER — img_stat                               -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 1: Examine the Disk Image (img_stat)</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-imgstat">
+<div class="narrative">
+<p>Before diving into partitions, confirm the image basics. <code>img_stat</code> reports the container format and total size.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-imgstat">
+<div class="narrative">
+<p>The image is <strong>raw</strong> (byte-for-byte copy) and <strong>134,217,728 bytes</strong> — exactly 128 MiB. TSK also supports EWF (E01), AFF, and other forensic formats; use <code>-i raw</code> to force the type if auto-detection fails.</p>
+<p>This size matters: 134,217,728 / 512 = <strong>262,144 total sectors</strong>. Any partition boundary beyond that would indicate corruption.</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-imgstat" class="sticky">
+<pre><code>$ img_stat ext3_lab.dd
+
+IMAGE FILE INFORMATION
+--------------------------------------------
+Image Type:         raw
+
+Size of data in bytes:  134217728</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 2: VOLUME LAYER — mmls                                  -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 2: Identify Partitions (mmls)</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-mmls">
+<div class="narrative">
+<p><code>mmls</code> reads the partition table from the first sector of the image.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-mmls">
+<div class="narrative">
+<p>This image has <strong>two partitions</strong>. Row 002 starts at sector <strong>2048</strong> — this is the main evidence volume. Row 003 starts at sector <strong>131072</strong> — this is the USB backup partition.</p>
+<p>The Start column gives you the <code>-o</code> offset for all subsequent commands. For partition 1: <code>-o 2048</code>. For partition 2: <code>-o 131072</code>. We will focus on partition 1 through Task 8, then use both in Task 13.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-mmls-hex">
+<div class="narrative">
+<p>The type code <strong>0x83</strong> means “Linux native.” Let’s verify partition 1 against the raw MBR.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-mmls-hex">
+<div class="narrative">
+<p><code>xxd</code> dumps raw bytes from the image. The <code>-s 446</code> seeks to byte 446 where MBR partition entries begin, and <code>-l 32</code> reads 32 bytes — enough for both 16-byte entries.</p>
+<p>The first entry’s type byte (offset 4) reads <code>0x83</code> — Linux, confirming <code>mmls</code> row 002. Its LBA start at bytes 8–11 reads <code>00 08 00 00</code> little-endian = <strong>2048</strong>. The second entry follows the same layout at the next 16 bytes, also type <code>0x83</code>, with LBA start <code>00 00 02 00</code> = <strong>131072</strong>. Both match <code>mmls</code> exactly.</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-mmls" class="sticky">
+<pre><code>$ mmls ext3_lab.dd
+
+DOS Partition Table
+Offset Sector: 0
+Units are in 512-byte sectors
+
+      Slot      Start        End          Length       Description
+000:  Meta      0000000000   0000000000   0000000001   Primary Table (#0)
+001:  -------   0000000000   0000002047   0000002048   Unallocated
+002:  000:000   0000002048   0000131071   0000129024   Linux (0x83)
+003:  000:001   0000131072   0000262143   0000131072   Linux (0x83)</code></pre>
+</div>
+<div id="cr-mmls-hex" class="sticky">
+<pre><code>$ xxd -s 446 -l 32 ext3_lab.dd
+
+000001be: 0020 2100 8324 1e06 0008 0000 00f8 0100
+000001ce: 0025 1f06 8330 0f0c 0000 0200 0000 0200</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 3: FILESYSTEM LAYER — fsstat                            -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 3: Filesystem Details (fsstat)</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-fsstat">
+<div class="narrative">
+<p>With the partition offset known, <code>fsstat</code> reveals ext3 internals.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-fsstat">
+<div class="narrative">
+<p>The volume name <strong>evidence_vol</strong> matches our label — useful for correlating with mount logs. The timestamps (last written, checked, mounted) establish system activity independent of file timestamps.</p>
+<p>Inode 2 is always the root directory on ext filesystems. The <strong>block size</strong> of 4096 bytes is critical for byte-offset math: a file in block <em>N</em> lives at absolute offset <code>(2048 × 512) + (N × 4096)</code> in the image.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-fsstat-hex">
+<div class="narrative">
+<p>Cross-check the block size against the raw superblock. The ext3 superblock starts at byte 1024 within the partition — absolute offset <code>(2048 × 512) + 1024 = 1,049,600</code>. The <code>xxd</code> command below reads 64 bytes starting there.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-fsstat-hex">
+<div class="narrative">
+<p>The superblock encodes block size as a log2 shift. Value <code>0x02</code> means 2^(2+10) = <strong>4096 bytes</strong> — matching <code>fsstat</code>.</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-fsstat" class="sticky">
+<pre><code>$ fsstat -o 2048 ext3_lab.dd
+
+FILE SYSTEM INFORMATION
+--------------------------------------------
+File System Type: Ext3
+Volume Name: evidence_vol
+Volume ID: a1b2c3d4e5f6...
+
+Last Written at: 2025-...
+Last Checked at: 2025-...
+Last Mounted at: 2025-...
+
+METADATA INFORMATION
+--------------------------------------------
+Inode Range: 1 - 8193
+Root Directory: 2
+
+CONTENT INFORMATION
+--------------------------------------------
+Block Range: 0 - 16127
+Block Size: 4096</code></pre>
+</div>
+<div id="cr-fsstat-hex" class="sticky">
+<pre><code>$ xxd -s 1049600 -l 64 ext3_lab.dd
+
+00100400: 0120 0000 f07e 0000 ...  inode count, block count
+00100410: ...                       reserved blocks
+00100420: 0010 0000 ...             block size (log2 - 10)
+          ^^^^^^^^
+          Value 0x02 at superblock offset 0x18
+          → 2^(2+10) = 2^12 = 4096 bytes  ✓</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 4: DIRECTORY LISTING — fls                              -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 4: List Directory Contents (fls)</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-fls">
+<div class="narrative">
+<p><code>fls</code> lists directory entries by inode. Without an inode argument it defaults to inode 2 (root).</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-fls">
+<div class="narrative">
+<p><code>d/d</code> = allocated directory. <code>r/r</code> = allocated regular file. The <code>r/r *</code> asterisk marks <strong>deleted_note.txt</strong> as deleted — the directory entry was removed but the name-to-inode mapping remains in the directory block. Note the inode number — you will feed it to <code>istat</code> and <code>icat</code> later.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-fls-recursive">
+<div class="narrative">
+<p>Full recursive listing:</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-fls-recursive">
+<div class="narrative">
+<p><code>-r</code> recurses into subdirectories, <code>-p</code> prepends full paths. Four deleted entries are visible (asterisks): <code>atlas_status.txt</code>, <code>meeting_notes.txt</code>, <code>passwords.txt</code>, and <code>deleted_note.txt</code>. Their inode numbers are the input to Tasks 5–6.</p>
+<p>Notice <code>transfer_log.txt</code> in <code>documents/</code> — this file was created <em>after</em> the others. We will revisit it in Task 13 when we examine the second partition.</p>
+</div>
+</div>
+<div class="trigger">
+<div class="try-it narrative">
+<p><strong>Try it:</strong> Run <code>ifind -n "documents/contract.txt" -o 2048 ext3_lab.dd</code>. Does the inode match what <code>fls</code> shows? Now try <code>ifind</code> on one of the deleted files — what happens?</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-fls" class="sticky">
+<pre><code>$ fls -o 2048 ext3_lab.dd
+
+d/d 11:     lost+found
+r/r 12:     readme.txt
+d/d 2049:   documents
+d/d 4097:   projects
+d/d 6145:   personal
+r/r * 21:   deleted_note.txt</code></pre>
+</div>
+<div id="cr-fls-recursive" class="sticky">
+<pre><code>$ fls -r -p -o 2048 ext3_lab.dd
+
+d/d 11:     lost+found
+r/r 12:     readme.txt
+d/d 2049:   documents
+r/r 13:     documents/pii_sample.txt
+r/r 14:     documents/contract.txt
+r/r 15:     documents/transfer_log.txt
+d/d 4097:   projects
+r/r * 16:   projects/atlas_status.txt
+r/r * 17:   projects/meeting_notes.txt
+d/d 6145:   personal
+r/r 18:     personal/travel.txt
+r/r * 19:   personal/passwords.txt
+r/r 20:     personal/todo.txt
+r/r * 21:   deleted_note.txt</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 5: INODE / METADATA — istat                             -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 5: Examine Inode Metadata (istat)</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-istat">
+<div class="narrative">
+<p><code>istat</code> dumps all metadata for a given inode. Inspect <code>readme.txt</code> using the inode from <code>fls</code> (inode 12).</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-istat">
+<div class="narrative">
+<p>The file is <strong>Allocated</strong>, 46 bytes, 1 hard link. The three ext3 timestamps — access, modification, inode change — are the <strong>MAC times</strong> used in timeline analysis. ext3 does not store a creation (birth) time; that was added in ext4.</p>
+<p><strong>Direct Blocks: 1094</strong> tells you which filesystem block holds the data. This is the link between <code>istat</code> output and <code>icat</code>/<code>blkcat</code> input — you will use this block number in Task 6. Larger files would show multiple direct blocks and indirect block pointers.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-istat-deleted">
+<div class="narrative">
+<p>Now inspect a deleted file’s inode. Use the inode from <code>fls</code> for <code>deleted_note.txt</code>:</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-istat-deleted">
+<div class="narrative">
+<p><strong>Not Allocated</strong> with link count <strong>0</strong> — unlinked from the directory. But size, timestamps, and block pointers are all intact. This is what makes recovery possible.</p>
+<p>The Inode Modified time is one second later than File Modified — that is the deletion event. <code>rm</code> updated the link count (inode metadata) without touching file content. The block number here (1095) becomes the input to <code>blkcat</code> in Task 6 and <code>blkstat</code> to check allocation status.</p>
+</div>
+</div>
+<div class="trigger">
+<div class="try-it narrative">
+<p><strong>Try it:</strong> Run <code>istat</code> on the <code>documents/</code> directory inode (2049). What is its size? How many links does it have — and what do the extra links represent? (Hint: <code>.</code> and <code>..</code> entries count.)</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-istat" class="sticky">
+<pre><code>$ istat -o 2048 ext3_lab.dd 12
+
+inode: 12
+Allocated
+Group: 0
+uid / gid: 0 / 0
+mode: rrw-r--r--
+size: 46
+num of links: 1
+
+Inode Times:
+Accessed:       2025-06-15 14:23:01 (UTC)
+File Modified:  2025-06-15 14:23:01 (UTC)
+Inode Modified: 2025-06-15 14:23:01 (UTC)
+
+Direct Blocks:
+1094</code></pre>
+</div>
+<div id="cr-istat-deleted" class="sticky">
+<pre><code>$ istat -o 2048 ext3_lab.dd 21
+
+inode: 21
+Not Allocated
+Group: 0
+uid / gid: 0 / 0
+mode: rrw-r--r--
+size: 48
+num of links: 0
+
+Inode Times:
+Accessed:       2025-06-15 14:23:15 (UTC)
+File Modified:  2025-06-15 14:23:15 (UTC)
+Inode Modified: 2025-06-15 14:23:16 (UTC)
+
+Direct Blocks:
+1095</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 6: DATA RECOVERY — icat, blkcat                         -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 6: Extract and Verify File Content</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-recovery-chain">
+<div class="narrative">
+<p>The chain from filename to bytes is: <strong>name → inode → block pointers → data blocks</strong>. Each tool’s output becomes the next tool’s input. This diagram maps the connections using the values from Tasks 4 and 5.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-icat-output">
+<div class="narrative">
+<p>Extract with <code>icat</code> — input is the inode from <code>istat</code>:</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-icat-deleted">
+<div class="narrative">
+<p><code>icat</code> follows block pointers regardless of allocation status. Recover the deleted file using the inode from Task 4’s <code>fls</code> output.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-blkcat">
+<div class="narrative">
+<p>Now verify at the block level. The block number 1094 comes from <code>istat</code> output in Task 5. <code>blkcat</code> reads that block, and piping through <code>xxd</code> shows the raw hex alongside ASCII. The left column is byte offset within the block, middle is hex pairs, right is printable characters (dots for non-printable).</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-xxd-verify">
+<div class="narrative">
+<p>Cross-validate by reading the image directly — no TSK involved. The absolute byte offset is computed from <code>mmls</code> (partition start) and <code>istat</code> (block number): <code>(2048 × 512) + (1094 × 4096) = 5,531,648</code>. The <code>xxd -s</code> flag seeks to that offset, <code>-l 48</code> reads 48 bytes.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-xxd-verify">
+<div class="narrative">
+<p>Identical bytes. TSK commands are structured interpreters of the raw image — when you understand the offset math, you can always verify.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-blkstat">
+<div class="narrative">
+<p>Check allocation with <code>blkstat</code> — input is again the block number from <code>istat</code>:</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-blkstat">
+<div class="narrative">
+<p>Block 1094 (<code>readme.txt</code>) is allocated. Block 1095 (deleted file) is <strong>Not Allocated</strong> — marked free but content persists until overwritten.</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-recovery-chain" class="sticky">
+<pre><code>Task 4 (fls):     "readme.txt"  →  inode 12
+                                      │
+Task 5 (istat):   inode 12  →  block 1094
+                                      │
+Task 6 (icat):    block 1094  →  "The quick brown fox..."
+                                      │
+Byte Offset:      (2048 × 512) + (1094 × 4096) = 5,531,648</code></pre>
+</div>
+<div id="cr-icat-output" class="sticky">
+<pre><code>$ icat -o 2048 ext3_lab.dd 12
+The quick brown fox jumps over the lazy dog.
+
+$ icat -o 2048 ext3_lab.dd 12 | md5sum
+d7a8fbb307d7809469ca9abcb0082e4f  -</code></pre>
+</div>
+<div id="cr-icat-deleted" class="sticky">
+<pre><code>$ icat -o 2048 ext3_lab.dd 21
+SECRET: The meeting is at midnight, east dock.</code></pre>
+</div>
+<div id="cr-blkcat" class="sticky">
+<pre><code>$ blkcat -o 2048 ext3_lab.dd 1094 | xxd | head -5
+
+00000000: 5468 6520 7175 6963 6b20 6272 6f77 6e20  The quick brown
+00000010: 666f 7820 6a75 6d70 7320 6f76 6572 2074  fox jumps over t
+00000020: 6865 206c 617a 7920 646f 672e 0a00 0000  he lazy dog.....
+00000030: 0000 0000 0000 0000 0000 0000 0000 0000  ................</code></pre>
+</div>
+<div id="cr-xxd-verify" class="sticky">
+<pre><code>$ xxd -s 5531648 -l 48 ext3_lab.dd
+
+00546800: 5468 6520 7175 6963 6b20 6272 6f77 6e20  The quick brown
+00546810: 666f 7820 6a75 6d70 7320 6f76 6572 2074  fox jumps over t
+00546820: 6865 206c 617a 7920 646f 672e 0a00 0000  he lazy dog.....</code></pre>
+</div>
+<div id="cr-blkstat" class="sticky">
+<pre><code>$ blkstat -o 2048 ext3_lab.dd 1094
+Allocated
+
+$ blkstat -o 2048 ext3_lab.dd 1095
+Not Allocated</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 7: UNALLOCATED SPACE — blkls                            -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 7: Search Unallocated Space (blkls)</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-blkls">
+<div class="narrative">
+<p>When you do not know which inode held a deleted file — or the inode has been wiped — search the raw unallocated blocks. <code>blkls</code> extracts every unallocated block into a binary blob that you can search with <code>strings</code> and <code>grep</code>.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-blkls">
+<div class="narrative">
+<p>Both deleted messages appear. This works even without knowing the inode — <code>blkls</code> bypasses the metadata layer entirely and dumps raw block content. Tools like <code>bulk_extractor</code> extend this approach with pattern matching for emails, URLs, credit card numbers, and other structured data.</p>
+</div>
+</div>
+<div class="trigger">
+<div class="try-it narrative">
+<p><strong>Try it:</strong> Search for “ATLAS” in unallocated space. Now search for “contract” — does allocated file content appear in unallocated space? Consider what it would mean if it did.</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-blkls" class="sticky">
+<pre><code>$ blkls -o 2048 ext3_lab.dd &gt; unallocated.bin
+
+$ ls -lh unallocated.bin
+-rw-r--r-- 1 root root 52M ...  unallocated.bin
+
+$ strings unallocated.bin | grep -i "secret"
+SECRET: The meeting is at midnight, east dock.
+
+$ strings unallocated.bin | grep -i "password"
+Password reminder: bank pin 4421, backup code XKCD-9371</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 8: TIMELINE — fls + mactime                             -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 8: Build a Timeline (fls + mactime)</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-timeline-cmd">
+<div class="narrative">
+<p>Timeline analysis sorts all filesystem activity chronologically. TSK’s workflow: generate a <strong>bodyfile</strong> with <code>fls -m</code>, then render it with <code>mactime</code>. The bodyfile is a pipe-delimited text format — one line per file with MD5, name, inode, permissions, and MAC timestamps.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-timeline-output">
+<div class="narrative">
+<p>Render the timeline:</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-timeline-output">
+<div class="narrative">
+<p>The <strong>Type</strong> column encodes which timestamps changed: <code>mac.</code> = all three set at creation. <code>..c.</code> = inode-change only (deletion). The timeline reveals the <strong>story</strong>: files were created in three clusters (documents, projects, personal), then a transfer log was written, then a secret note appeared briefly before four files were deleted at once.</p>
+<p>This is the same data from <code>fls</code> and <code>istat</code>, reorganized chronologically. The timeline connects tool outputs into a coherent narrative — which is exactly what a forensic report requires.</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-timeline-cmd" class="sticky">
+<pre><code>$ fls -r -m "/" -o 2048 ext3_lab.dd &gt; body.txt
+
+$ head -3 body.txt
+0|/readme.txt|12|r/rrw-r--r--|0|0|46|...|...|...|...
+0|/documents|2049|d/drwxr-xr-x|0|0|4096|...|...|...|...
+0|/documents/pii_sample.txt|13|r/rrw-r--r--|0|0|55|...|...|...|...</code></pre>
+</div>
+<div id="cr-timeline-output" class="sticky">
+<pre><code>$ mactime -b body.txt -d &gt; timeline.csv
+
+Date,Size,Type,Mode,UID,GID,Meta,File Name
+..14:23:01,46,mac.,rrw-r--r--,0,0,12,/readme.txt
+..14:23:01,55,mac.,rrw-r--r--,0,0,13,/documents/pii_sample.txt
+..14:23:01,49,mac.,rrw-r--r--,0,0,14,/documents/contract.txt
+..14:23:03,61,mac.,rrw-r--r--,0,0,16,/projects/atlas_status.txt
+..14:23:03,62,mac.,rrw-r--r--,0,0,17,/projects/meeting_notes.txt
+..14:23:05,55,mac.,rrw-r--r--,0,0,18,/personal/travel.txt
+..14:23:05,54,mac.,rrw-r--r--,0,0,19,/personal/passwords.txt
+..14:23:09,51,mac.,rrw-r--r--,0,0,15,/documents/transfer_log.txt
+..14:23:15,48,mac.,rrw-r--r--,0,0,21,/deleted_note.txt (deleted)
+..14:23:16,48,...c,rrw-r--r--,0,0,21,/deleted_note.txt (deleted)
+..14:23:16,54,...c,rrw-r--r--,0,0,19,/personal/passwords.txt (deleted)
+..14:23:16,61,...c,rrw-r--r--,0,0,16,/projects/atlas_status.txt (deleted)
+..14:23:16,62,...c,rrw-r--r--,0,0,17,/projects/meeting_notes.txt (deleted)</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 9: EVIDENCE CHAIN WORKSHEET                             -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 9: Trace the Evidence Chain</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-chain-table">
+<div class="narrative">
+<p>In Tasks 1–6 you used each TSK tool in sequence, but the connections between tools were implicit. This task makes them explicit. For a given file, document the full resolution path — each row’s <strong>Result</strong> column becomes the <strong>Input</strong> for the next row.</p>
+<p>Complete this table for <code>documents/contract.txt</code>. Every value should come from an actual command you run — do not guess.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-chain-table">
+<div class="narrative">
+<p>Row 1’s result feeds into row 2’s <code>-o</code> flag. Row 2’s inode feeds into row 3. Row 3’s block feeds into rows 5, 6, and 7. Row 6’s byte offset is computed: <code>(offset × 512) + (block × block_size)</code>.</p>
+<p>The key insight: TSK is not a black box. Each tool reads a specific on-disk structure and outputs values that feed directly into the next tool.</p>
+</div>
+</div>
+<div class="trigger">
+<div class="try-it narrative">
+<p><strong>Try it:</strong> Now complete the same table for one of the <strong>deleted</strong> files (e.g., <code>passwords.txt</code>). What is different? Which rows still work, and which produce different output compared to an allocated file?</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-chain-table" class="sticky">
+<pre><code>┌────┬──────────────┬─────────────────────────┬──────────────┐
+│ #  │ Tool         │ Command                 │ Result       │
+├────┼──────────────┼─────────────────────────┼──────────────┤
+│ 1  │ mmls         │ mmls ext3_lab.dd        │ offset: ?    │
+│ 2  │ fls          │ fls -o ? ext3_lab.dd    │ inode: ?     │
+│ 3  │ istat        │ istat -o ? ... ?        │ block(s): ?  │
+│ 4  │ icat         │ icat -o ? ... ? &gt; f     │ md5: ?       │
+│ 5  │ blkcat + xxd │ blkcat -o ? ... ? |xxd  │ first bytes? │
+│ 6  │ xxd direct   │ xxd -s ? -l ? ...       │ match? Y/N   │
+│ 7  │ blkstat      │ blkstat -o ? ... ?      │ Allocated?   │
+└────┴──────────────┴─────────────────────────┴──────────────┘</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 11: MULTI-FILE RECOVERY CHALLENGE                       -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 11: Multi-File Recovery Challenge</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-recovery-brief">
+<div class="narrative">
+<p>The setup script deleted four files and printed their inode numbers and MD5 hashes. Your job: recover all four using only TSK commands, verify each against its known hash, and document your process.</p>
+<p>You have the target hashes from the setup script output. You should <strong>not</strong> need them to find the files — they are for verification only.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-recovery-steps">
+<div class="narrative">
+<p>Start with <code>fls -r -p -o 2048 ext3_lab.dd</code> to locate all deleted entries (look for asterisks). For each deleted file, run <code>istat</code> to check whether block pointers survive, then <code>icat</code> to extract content.</p>
+<p>If an inode’s block pointers have been cleared, <code>icat</code> will produce empty or garbage output and the MD5 will not match. In that case, fall back to <code>blkls</code> + <code>strings</code> — the data may still exist in unallocated space even when the metadata is gone.</p>
+</div>
+</div>
+<div class="trigger">
+<div class="try-it narrative">
+<p><strong>Try it:</strong> Recover all four files. Create a directory called <code>recovered/</code> and save each with its original filename. Run <code>md5sum recovered/*</code> and compare against the setup script’s reference table. How many matched?</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-recovery-brief" class="sticky">
+<pre><code>Recovery Targets (from setup script output):
+─────────────────────────────────────────────
+File                  │ Expected MD5
+──────────────────────┼──────────────────────────────────
+deleted_note.txt      │ (from setup output)
+passwords.txt         │ (from setup output)
+atlas_status.txt      │ (from setup output)
+meeting_notes.txt     │ (from setup output)
+─────────────────────────────────────────────
+
+For each file, document:
+  1. How you found it    (which fls output?)
+  2. Its inode number    (from fls)
+  3. Its istat output    (allocation status, size, blocks)
+  4. Recovered content   (icat output)
+  5. MD5 verification    (match? Y/N)</code></pre>
+</div>
+<div id="cr-recovery-steps" class="sticky">
+<pre><code>Workflow per file:
+──────────────────────────────────────────────
+
+1. fls -r -p -o 2048 ext3_lab.dd | grep "*"
+   → Find deleted entry, note inode
+
+2. istat -o 2048 ext3_lab.dd &lt;INODE&gt;
+   → Check: "Not Allocated"? Blocks intact?
+
+3. icat -o 2048 ext3_lab.dd &lt;INODE&gt; &gt; recovered.txt
+   → Extract content
+
+4. md5sum recovered.txt
+   → Compare to expected hash
+
+5. If md5 doesn't match:
+   blkls -o 2048 ext3_lab.dd | strings | grep "&lt;keyword&gt;"
+   → Search unallocated space as fallback</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 12: TIMELINE RECONSTRUCTION NARRATIVE                   -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 12: Timeline Reconstruction</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-timeline-full">
+<div class="narrative">
+<p>The setup script created files in five phases with deliberate pauses between them. The <code>mactime</code> output from Task 8 reflects this — timestamps cluster into distinct groups. Your task: translate the raw timeline into a forensic narrative.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-timeline-full">
+<div class="narrative">
+<p>Regenerate the timeline if needed: <code>fls -r -m "/" -o 2048 ext3_lab.dd &gt; body.txt &amp;&amp; mactime -b body.txt -d &gt; timeline.csv</code>. Open <code>timeline.csv</code> and identify the clusters.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-narrative-task">
+<div class="narrative">
+<p>For each cluster, note the timestamp range and which files appear. Then corroborate: pick two entries and run <code>istat</code> on their inodes to verify the timestamps match what <code>mactime</code> reports.</p>
+<p>Write a 1-paragraph forensic narrative in this style:</p>
+</div>
+</div>
+<div class="trigger">
+<div class="try-it narrative">
+<p><strong>Try it:</strong> Write your own narrative covering all six clusters. For the deletion cluster, use <code>istat</code> to show the one-second gap between File Modified and Inode Modified times as corroborating evidence. Does the <code>transfer_log.txt</code> content (use <code>icat</code> to read it) support the timeline story?</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-timeline-full" class="sticky">
+<pre><code>Expected timeline structure (your timestamps will differ):
+──────────────────────────────────────────────────
+
+Cluster 1 (T+0s):   readme.txt, pii_sample.txt, contract.txt
+  → Initial document creation
+
+Cluster 2 (T+2s):   atlas_status.txt, meeting_notes.txt
+  → Project files appear
+
+Cluster 3 (T+4s):   travel.txt, passwords.txt, todo.txt
+  → Personal files created
+
+Cluster 4 (T+6s):   transfer_log.txt
+  → Evidence of data transfer
+
+Cluster 5 (T+8s):   deleted_note.txt created
+Cluster 6 (T+9s):   Four files deleted (..c. entries)
+  → Cover-up activity</code></pre>
+</div>
+<div id="cr-narrative-task" class="sticky">
+<pre><code>Example forensic narrative:
+──────────────────────────────────────────────────
+
+"At approximately 14:23:01 UTC on June 15, 2025,
+user root (UID 0) created three documents in the
+root and documents/ directories: readme.txt,
+pii_sample.txt, and contract.txt. Two seconds
+later, project files atlas_status.txt and
+meeting_notes.txt were created. [...]
+
+At 14:23:09, transfer_log.txt was created in
+documents/, noting that sensitive files had been
+copied to a USB backup. At 14:23:15, a file
+'deleted_note.txt' containing [describe content]
+was created and then deleted one second later
+along with three other files, suggesting an
+attempt to remove sensitive material."
+
+Cite specific timeline rows and istat output
+to support each claim.</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 13: CROSS-PARTITION CORRELATION                         -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 13: Cross-Partition Correlation</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-cross-mmls">
+<div class="narrative">
+<p>The image contains two partitions — <code>mmls</code> showed this in Task 2. Until now we have only examined partition 1 (offset 2048). Partition 2 (offset <strong>131072</strong>) is labeled “usb_backup.” The <code>transfer_log.txt</code> on partition 1 mentions files were copied there. Let’s verify.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-cross-fls">
+<div class="narrative">
+<p>Now list partition 2’s contents — same commands, different <code>-o</code> offset:</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-cross-fls">
+<div class="narrative">
+<p>Three files on the backup partition. The manifest confirms what <code>transfer_log.txt</code> on partition 1 claimed — <code>contract.txt</code> and <code>atlas_status.txt</code> were copied here.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-cross-verify">
+<div class="narrative">
+<p>Now connect the partitions forensically. If <code>contract_backup.txt</code> on partition 2 is a true copy of <code>contract.txt</code> on partition 1, their content should be byte-identical:</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-cross-verify">
+<div class="narrative">
+<p>The inode numbers differ across partitions (14 vs 12) because each filesystem has its own inode table. But if the MD5 hashes match, the content is identical — confirming the copy.</p>
+<p><code>atlas_status.txt</code> was deleted from partition 1 but its backup on partition 2 is still allocated. This is a common forensic scenario: a suspect deletes files from one volume but forgets the backup on another.</p>
+</div>
+</div>
+<div class="trigger">
+<div class="try-it narrative">
+<p><strong>Try it:</strong> Recover <code>atlas_status.txt</code> from partition 1 (it was deleted — use <code>icat</code> with its partition-1 inode) and compare its MD5 to <code>atlas_backup.txt</code> on partition 2. Do they match? Then check the <code>istat</code> timestamps on both copies — are they identical? What does the difference (if any) tell you about <em>when</em> the copy happened relative to the original creation?</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-cross-mmls" class="sticky">
+<pre><code>From Task 2 (mmls):
+002:  000:000   0000002048   0000131071   Linux (0x83)   ← evidence_vol
+003:  000:001   0000131072   0000262143   Linux (0x83)   ← usb_backup
+
+$ fsstat -o 131072 ext3_lab.dd | head -8
+
+FILE SYSTEM INFORMATION
+--------------------------------------------
+File System Type: Ext3
+Volume Name: usb_backup
+...</code></pre>
+</div>
+<div id="cr-cross-fls" class="sticky">
+<pre><code>$ fls -o 131072 ext3_lab.dd
+
+d/d 11:     lost+found
+r/r 12:     contract_backup.txt
+r/r 13:     atlas_backup.txt
+r/r 14:     backup_manifest.txt
+
+$ icat -o 131072 ext3_lab.dd 14
+Backup 2025-06-15: contract.txt, atlas_status.txt</code></pre>
+</div>
+<div id="cr-cross-verify" class="sticky">
+<pre><code>$ icat -o 2048   ext3_lab.dd 14 | md5sum
+&lt;hash_a&gt;  -
+
+$ icat -o 131072 ext3_lab.dd 12 | md5sum
+&lt;hash_b&gt;  -
+
+Do hash_a and hash_b match?</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================ -->
+<!-- TASK 15: AUTOMATED FORENSIC REPORT SCRIPT                    -->
+<!-- ============================================================ -->
+<div class="sticky-header"><h2 class="anchored">Task 15: Automated Forensic Report</h2></div>
+<div class="cr-section cr-column-screen sidebar-left">
+<div class="narrative-col">
+<div class="trigger new-trigger" data-focus-on="cr-script-spec">
+<div class="narrative">
+<p>You have now run every TSK command manually. In practice, examiners script these pipelines to process images consistently and reproducibly. Write a bash script called <code>tsk_report.sh</code> that takes an image path as its only argument and produces a structured text report.</p>
+</div>
+</div>
+<div class="trigger new-trigger" data-focus-on="cr-script-hints">
+<div class="narrative">
+<p>Start by parsing <code>mmls</code> output to find partition offsets automatically — do not hard-code <code>-o 2048</code>. Use <code>awk</code> or <code>grep</code> to extract the start sector for each “Linux (0x83)” row. Then loop over partitions.</p>
+<p>To find deleted files programmatically, filter <code>fls</code> output for lines containing <code>*</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">fls</span> <span class="at">-r</span> <span class="at">-p</span> <span class="at">-o</span> <span class="st">"</span><span class="va">$offset</span><span class="st">"</span> <span class="st">"</span><span class="va">$img</span><span class="st">"</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="st">'\*'</span> <span class="kw">|</span> <span class="cf">while</span> <span class="bu">read</span> <span class="va">line</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">inode</span><span class="op">=</span><span class="va">$(</span><span class="bu">echo</span> <span class="st">"</span><span class="va">$line</span><span class="st">"</span> <span class="kw">|</span> <span class="fu">awk</span> <span class="at">-F:</span> <span class="st">'{print $1}'</span> <span class="kw">|</span> <span class="fu">awk</span> <span class="st">'{print $NF}'</span><span class="va">)</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># run istat, icat on $inode</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<div class="trigger">
+<div class="try-it narrative">
+<p><strong>Try it:</strong> Write and test <code>tsk_report.sh</code> against <code>ext3_lab.dd</code>. Verify that it correctly finds both partitions, lists all files, identifies all four deleted files, recovers them, and produces a timeline. Then test it against a different image (create one with a different layout) to confirm it is not hard-coded to this specific image.</p>
+</div>
+</div>
+</div>
+<div class="sticky-col">
+<div class="sticky-col-stack">
+<div id="cr-script-spec" class="sticky">
+<pre><code>Usage: bash tsk_report.sh &lt;image.dd&gt;
+
+Required output sections:
+──────────────────────────────────────────────
+
+1. IMAGE SUMMARY
+   - img_stat output (type, size)
+
+2. PARTITION TABLE
+   - mmls output
+   - For each Linux partition: fsstat summary
+
+3. FILE LISTING (per partition)
+   - fls -r -p output
+   - Count: total files, deleted files
+
+4. DELETED FILE REPORT
+   - For each deleted entry: istat output
+   - Attempt icat recovery, report md5
+
+5. TIMELINE
+   - bodyfile + mactime output (CSV)
+
+All output to stdout or a report file.</code></pre>
+</div>
+<div id="cr-script-hints" class="sticky">
+<pre><code>Hints:
+──────────────────────────────────────────────
+
+# Extract partition offsets from mmls:
+mmls "$IMG" | grep "Linux" | awk '{print $3}'
+
+# Count deleted files:
+fls -r -p -o "$OFF" "$IMG" | grep -c '\*'
+
+# Extract inode from fls line "r/r * 21: file":
+echo "$line" | awk '{print $3}' | tr -d ':'
+
+# Generate bodyfile for a specific partition:
+fls -r -m "/p${n}" -o "$OFF" "$IMG"
+
+# Combine bodyfiles from multiple partitions:
+cat body_p1.txt body_p2.txt &gt; body_all.txt
+mactime -b body_all.txt -d</code></pre>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>You have worked through every major layer of The Sleuth Kit and connected outputs across tools:</p>
+<ol type="1">
+<li><strong>Image layer</strong> — <code>img_stat</code> confirmed image type and size.</li>
+<li><strong>Volume layer</strong> — <code>mmls</code> identified both partitions; verified against raw MBR hex.</li>
+<li><strong>Filesystem layer</strong> — <code>fsstat</code> revealed block size, inode range, timestamps; cross-checked the superblock.</li>
+<li><strong>Directory layer</strong> — <code>fls</code> listed entries including deleted files; <code>ifind</code> resolved names to inodes.</li>
+<li><strong>Metadata layer</strong> — <code>istat</code> exposed timestamps, permissions, and block pointers for allocated and deleted inodes.</li>
+<li><strong>Content layer</strong> — <code>icat</code> extracted file data; <code>blkcat</code> read raw blocks; absolute byte offsets confirmed with <code>xxd</code>.</li>
+<li><strong>Unallocated space</strong> — <code>blkls</code> + <code>strings</code> found deleted content without inode metadata.</li>
+<li><strong>Timeline</strong> — <code>fls</code> bodyfile piped to <code>mactime</code> produced chronological activity.</li>
+<li><strong>Evidence chain</strong> — Traced the full tool-to-tool pipeline from filename to verified bytes.</li>
+<li><strong>Recovery challenge</strong> — Found and verified four deleted files using combined tool output.</li>
+<li><strong>Narrative</strong> — Translated raw timeline into a forensic story corroborated by <code>istat</code>.</li>
+<li><strong>Cross-partition</strong> — Correlated evidence across two volumes using hash comparison.</li>
+<li><strong>Automation</strong> — Scripted the full pipeline for reproducible analysis.</li>
+</ol>
+<p>These skills transfer directly to NTFS, FAT, HFS+, and ext4 — the commands are identical; only <code>fsstat</code> and <code>istat</code> details change.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

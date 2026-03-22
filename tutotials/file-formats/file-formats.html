@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File formats — CSCI 4623 — Digital Forensics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:        #1a2744;
+  --navy-mid:    #243460;
+  --navy-light:  #2e3f72;
+  --blue:        #2563eb;
+  --blue-hover:  #1d4ed8;
+  --blue-light:  #dbeafe;
+  --blue-xlight: #eff6ff;
+  --sidebar-w:   260px;
+  --topbar-h:    58px;
+  --text:        #1e293b;
+  --text-muted:  #64748b;
+  --bg-page:     #ffffff;
+  --bg-sidebar:  #f8fafc;
+  --bg-code:     #0d1526;
+  --bg-code-inline: #f1f5f9;
+  --border:      #e2e8f0;
+  --border-mid:  #cbd5e1;
+  --green:       #16a34a;
+  --green-light: #f0fdf4;
+  --amber:       #d97706;
+  --amber-light: #fffbeb;
+  --font-ui:     'Exo 2', 'Segoe UI', sans-serif;
+  --font-body:   'Open Sans', 'Segoe UI', sans-serif;
+  --font-code:   'Consolas', 'Cascadia Code', 'Fira Mono', monospace;
+  --radius:      8px;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--bg-page);
+  overflow-x: hidden;
+  font-size: 15px;
+}
+
+/* ── Top Bar ───────────────────────────────────────────────────── */
+#topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  background: linear-gradient(100deg, var(--navy) 0%, var(--navy-mid) 60%, var(--navy-light) 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  z-index: 200;
+  gap: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+#topbar .course-tag {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-right: 14px;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+#topbar .tutorial-title {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  padding-left: 14px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#topbar .spacer { flex: 1; }
+
+#topbar .meta {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────── */
+#sidebar {
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+}
+
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-track { background: transparent; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
+
+#step-list {
+  list-style: none;
+  padding: 12px 0 40px;
+}
+
+#step-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 16px 8px 14px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+  user-select: none;
+}
+
+#step-list li:hover { background: #eef2fa; }
+
+#step-list li.active {
+  background: var(--blue-light);
+  border-left-color: var(--blue);
+}
+
+#step-list li.active .step-num {
+  background: var(--blue);
+  color: #fff;
+}
+
+#step-list li.active .step-lbl {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  transition: background 0.12s;
+}
+
+.step-lbl {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  transition: color 0.12s;
+}
+
+/* ── Main ──────────────────────────────────────────────────────── */
+#main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--topbar-h);
+  min-height: calc(100vh - var(--topbar-h));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* ── Step View ─────────────────────────────────────────────────── */
+#step-view {
+  width: 100%;
+  max-width: 860px;
+  padding: 48px 60px 20px;
+  flex: 1;
+  animation: fadeIn 0.18s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Step header */
+.step-hdr {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--border);
+}
+
+.step-badge {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(26,39,68,0.3);
+}
+
+.step-hdr h1 {
+  font-family: var(--font-ui);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.2;
+}
+
+/* ── Content Typography ────────────────────────────────────────── */
+#step-view h2 {
+  font-family: var(--font-ui);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 36px 0 10px;
+}
+
+#step-view h3 {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--navy-light);
+  margin: 28px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#step-view p {
+  line-height: 1.78;
+  margin-bottom: 14px;
+  color: #2d3748;
+}
+
+#step-view ul, #step-view ol {
+  margin: 8px 0 18px 22px;
+}
+
+#step-view li {
+  line-height: 1.7;
+  margin-bottom: 5px;
+}
+
+#step-view strong { font-weight: 600; color: var(--navy); }
+
+/* Inline code */
+#step-view code {
+  font-family: var(--font-code);
+  font-size: 0.83em;
+  background: var(--bg-code-inline);
+  color: var(--navy);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* Code blocks */
+#step-view pre {
+  background: var(--bg-code);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin: 12px 0 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+#step-view pre code {
+  font-family: var(--font-code);
+  font-size: 0.815rem;
+  color: #cdd9f0;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1.65;
+  white-space: pre;
+  border-radius: 0;
+}
+
+/* Explanation panel — replaces closeread sticky */
+.expl {
+  background: var(--blue-xlight);
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 16px 20px;
+  margin: 0 0 28px;
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: #1e3a5f;
+}
+
+.expl p { color: #1e3a5f; margin-bottom: 10px; }
+.expl p:last-child { margin-bottom: 0; }
+.expl code { background: #dbeafe; color: #1e3a5f; border-color: #93c5fd; }
+.expl strong { color: var(--navy); }
+
+/* Callout boxes */
+.callout {
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin: 20px 0;
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
+.callout p { margin-bottom: 8px; }
+.callout p:last-child { margin-bottom: 0; }
+
+.callout.try-it {
+  background: var(--green-light);
+  border-left: 4px solid var(--green);
+  color: #14532d;
+}
+.callout.try-it strong { color: var(--green); }
+.callout.try-it code  { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+.callout.capstone {
+  background: var(--amber-light);
+  border-left: 4px solid var(--amber);
+  color: #78350f;
+}
+.callout.capstone strong { color: var(--amber); }
+
+.callout.info {
+  background: var(--blue-xlight);
+  border-left: 4px solid var(--blue);
+  color: #1e3a5f;
+}
+.callout.info code { background: #dbeafe; color: #1e3a5f; border-color: #93c5fd; }
+
+/* Duration badge on intro */
+.duration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--blue-light);
+  color: var(--blue);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #bfdbfe;
+}
+
+.duration-badge::before {
+  content: '⏱';
+  font-size: 0.85em;
+}
+
+/* Placeholder box for missing/incomplete sections */
+.placeholder {
+  border: 2px dashed var(--border-mid);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 20px 0;
+  background: #fafafa;
+}
+
+/* forensic-path inline span */
+.forensic-path {
+  font-family: var(--font-code);
+  font-size: 0.9em;
+  background: var(--bg-code-inline);
+  color: var(--navy);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* ── Bottom Nav ────────────────────────────────────────────────── */
+#nav-bar {
+  width: 100%;
+  max-width: 860px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 60px 48px;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+}
+
+.nav-btn {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 2px solid var(--blue);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.01em;
+  background: none;
+}
+
+.nav-btn.prev { background: #fff; color: var(--blue); }
+.nav-btn.prev:hover { background: var(--blue-light); }
+
+.nav-btn.next { background: var(--blue); color: #fff; }
+.nav-btn.next:hover { background: var(--blue-hover); border-color: var(--blue-hover); }
+
+.nav-btn.hidden { visibility: hidden; pointer-events: none; }
+
+.nav-step-counter {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ─────────────────────────────────────────────────── -->
+<header id="topbar">
+  <span class="course-tag">CSCI 4623 — Digital Forensics</span>
+  <span class="tutorial-title">File formats</span>
+  <span class="spacer"></span>
+  <span class="meta" id="topbar-meta"></span>
+</header>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────── -->
+<nav id="sidebar">
+  <ol id="step-list"></ol>
+</nav>
+
+<!-- ── Main ────────────────────────────────────────────────────── -->
+<main id="main">
+  <div id="step-view"></div>
+  <div id="nav-bar">
+    <button class="nav-btn prev hidden" id="btn-prev">&#8592; Back</button>
+    <span class="nav-step-counter" id="step-counter"></span>
+    <button class="nav-btn next" id="btn-next">Next &#8594;</button>
+  </div>
+</main>
+
+<!-- ── Step Data (injected by qmd2codelab.py) ──────────────────── -->
+<script>
+const STEPS = [
+  {
+    "title": "Overview",
+    "content": "<p>This walkthrough accompanies the File Formats lecture module. You\nwill examine a curated set of fabricated sample files using the same\ntools an examiner would reach for during triage and analysis:\n<code>file</code>, <code>exiftool</code>, <code>xxd</code>,\n<code>pngcheck</code>, <code>binwalk</code>, <code>unzip</code>, and a\nset of Python helper scripts.</p>\n<p>Each task targets a specific format family or forensic technique. The\nsample files contain planted artifacts — metadata fields, hidden chunks,\nembedded archives, and timestamp inconsistencies — designed to surface\nthe concepts from lecture in a controlled setting.</p>\n<p><strong>Estimated time:</strong> 60–90 minutes</p>\n<p><strong>Prerequisites:</strong> Run <code>setup_formats_lab.sh</code>\nbefore beginning.</p>\n<hr />"
+  },
+  {
+    "title": "Task 0 — Verify setup and run first-pass identification",
+    "content": "<h3 id=\"motivation\">Motivation</h3>\n<p>Before examining any individual file, an examiner surveys the entire\nfile set using automated identification tools. This establishes a\nbaseline and immediately flags any format anomalies.</p>\n<h3 id=\"verify-the-lab-directory\">0.1 Verify the lab directory</h3>\n<pre class=\"bash\"><code>ls -lh ~/formats-lab/</code></pre>\n<p>You should see 15 files. If any are missing, re-run\n<code>setup_formats_lab.sh</code>.</p>\n<h3 id=\"run-file-across-all-files\">0.2 Run <code>file</code> across all\nfiles</h3>\n<pre class=\"bash\"><code>cd ~/formats-lab\nfile -i *</code></pre>\n<p>Expected output (order may vary):</p>\n<pre><code>archive.zip:    application/zip; charset=binary\naudio.mp3:      audio/mpeg; charset=binary\ndocument.pdf:   application/pdf; charset=binary\nfirmware.bin:   image/jpeg; charset=binary\ngraphic.png:    image/png; charset=binary\nlegacy.doc:     application/msword; charset=binary\nmismatch1.pdf:  image/jpeg; charset=binary\nmismatch2.docx: application/zip; charset=binary\nnormal.elf:     application/x-executable; charset=binary\nnormal.exe:     application/x-dosexec; charset=binary\npacked.elf:     application/x-executable; charset=binary\npacked.exe:     application/x-dosexec; charset=binary\nphoto.jpg:      image/jpeg; charset=binary\nreport.docx:    application/zip; charset=binary\nvideo.mp4:      video/mp4; charset=binary</code></pre>\n<h3 id=\"identify-the-extension-mismatches\">0.3 Identify the extension\nmismatches</h3>\n<p>Examine the output above. Two files have extensions that contradict\ntheir detected MIME type:</p>\n<ul>\n<li><code>mismatch1.pdf</code> — reported as <code>image/jpeg</code>,\nnot <code>application/pdf</code></li>\n<li><code>mismatch2.docx</code> — reported as\n<code>application/zip</code> (ZIP, not OOXML)</li>\n</ul>\n<p>Note that <code>report.docx</code> is <em>also</em> reported as\n<code>application/zip</code> — this is correct, because OOXML files are\nZIP archives. The distinction is that <code>mismatch2.docx</code> is a\n<em>raw</em> ZIP with no OOXML internal structure.</p>\n<p>Confirm with:</p>\n<pre class=\"bash\"><code>unzip -l mismatch2.docx | head -5\nunzip -l report.docx | head -5</code></pre>\n<p>The <code>report.docx</code> listing will show <code>word/</code>,\n<code>docProps/</code>, and <code>_rels/</code> directories\ncharacteristic of OOXML. The <code>mismatch2.docx</code> listing will\nshow the raw <code>data/</code> and <code>readme.txt</code> entries from\na plain ZIP archive.</p>\n<h3 id=\"run-trid-on-the-mismatched-files\">0.4 Run TrID on the mismatched\nfiles</h3>\n<pre class=\"bash\"><code>trid mismatch1.pdf\ntrid mismatch2.docx</code></pre>\n<p>TrID returns a ranked list of candidate formats with confidence\npercentages. Record the top result for each file and compare with what\n<code>file</code> reported.</p>\n<hr />"
+  },
+  {
+    "title": "Task 1 — JPEG dissection",
+    "content": "<h3 id=\"motivation\">Motivation</h3>\n<p>JPEG files carry more forensic information than their compressed\npixel data suggests. The EXIF APP1 segment embeds device identity,\ncapture timestamps, GPS coordinates, and an independent thumbnail that\nmay preserve a pre-edit version of the image.</p>\n<h3 id=\"confirm-the-jpeg-structure-with-xxd\">1.1 Confirm the JPEG\nstructure with <code>xxd</code></h3>\n<pre class=\"bash\"><code>xxd photo.jpg | head -4</code></pre>\n<p>Expected output (first two bytes are the JPEG SOI marker; the next\ntwo are the APP1 marker):</p>\n<pre><code>00000000: ffd8 ffe1 xxxx 4578 6966 0000 ...     ......Exif..</code></pre>\n<ul>\n<li><code>FF D8</code> — Start of Image (SOI) — 2-byte marker, no length\nfield</li>\n<li><code>FF E1</code> — APP1 marker (EXIF segment follows); the\n<code>xx xx</code> after it is the segment length</li>\n</ul>\n<p>Confirm the End of Image marker at the file’s tail:</p>\n<pre class=\"bash\"><code>xxd photo.jpg | tail -2</code></pre>\n<p>The last two bytes should be <code>FF D9</code> (EOI marker).</p>\n<h3 id=\"extract-all-exif-metadata-with-exiftool\">1.2 Extract all EXIF\nmetadata with <code>exiftool</code></h3>\n<pre class=\"bash\"><code>exiftool photo.jpg</code></pre>\n<p>Locate and record:</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Field</th>\n<th>Value</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td><code>Make</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Camera Model Name</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>Software</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Date/Time Original</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>GPS Latitude</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>GPS Longitude</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>GPS Altitude</code></td>\n<td></td>\n</tr>\n</tbody>\n</table>\n<p>Note the <code>Software</code> field — it identifies\n<code>Adobe Photoshop</code>, while <code>Date/Time Original</code>\nreflects the original capture time (<code>2024:03:15</code>). The\n<code>DateTime</code> field (the last-modified-by-software timestamp) is\nlater (<code>2024:04:02</code>) — 18 days after capture — confirming the\nfile was post-processed after the original shoot.</p>\n<h3 id=\"extract-the-embedded-thumbnail\">1.3 Extract the embedded\nthumbnail</h3>\n<pre class=\"bash\"><code>exiftool -ThumbnailImage -b photo.jpg &gt; thumbnail.jpg\nfile -i thumbnail.jpg</code></pre>\n<p>The <code>-b</code> flag suppresses the tag name, writing only the\nraw binary data. Confirm the output is a valid JPEG.</p>\n<h3 id=\"compare-thumbnail-with-main-image\">1.4 Compare thumbnail with\nmain image</h3>\n<pre class=\"bash\"><code>exiftool -ImageSize photo.jpg\nexiftool -ThumbnailImageSize photo.jpg 2&gt;/dev/null || exiftool -ImageSize thumbnail.jpg</code></pre>\n<p>Open both files in an image viewer or use <code>identify</code>\n(ImageMagick) if available:</p>\n<pre class=\"bash\"><code>identify photo.jpg thumbnail.jpg 2&gt;/dev/null</code></pre>\n<p>The thumbnail is a different color from the main image — it was\ngenerated from the original pre-edit version and not updated when the\nmain image was modified. This thumbnail-vs-main discrepancy is a\nforensic indicator of post-capture manipulation.</p>\n<h3 id=\"use-the-helper-script\">1.5 Use the helper script</h3>\n<pre class=\"bash\"><code>python3 ~/formats-lab/scripts/inspect_jpeg.py photo.jpg</code></pre>\n<p>The script confirms the SOI marker, prints the IFD0, Exif, and GPS\nIFDs, and extracts the thumbnail to\n<code>photo_thumbnail.jpg</code>.</p>\n<hr />"
+  },
+  {
+    "title": "Task 2 — PNG chunk analysis",
+    "content": "<h3 id=\"motivation\">Motivation</h3>\n<p>PNG uses a chunked structure where ancillary chunks carry arbitrary\nmetadata. These chunks are invisible to image viewers but trivially\nreadable with the right tools. They can carry planted metadata, operator\nnotes, or hidden data.</p>\n<h3 id=\"identify-all-chunks-with-pngcheck\">2.1 Identify all chunks with\n<code>pngcheck</code></h3>\n<pre class=\"bash\"><code>pngcheck -v graphic.png</code></pre>\n<p><code>pngcheck</code> validates CRCs and lists every chunk with its\noffset and length. Look for any chunk types beyond <code>IHDR</code>,\n<code>IDAT</code>, and <code>IEND</code>.</p>\n<p>You should see at least one <code>iTXt</code> chunk and one\n<code>tEXt</code> chunk in the listing.</p>\n<h3 id=\"run-the-helper-script\">2.2 Run the helper script</h3>\n<pre class=\"bash\"><code>python3 ~/formats-lab/scripts/inspect_png.py graphic.png</code></pre>\n<p>Expected output includes a chunk inventory table followed by the\ndecoded text chunk contents. Record:</p>\n<ul>\n<li>The <code>iTXt</code> keyword and text value</li>\n<li>The <code>tEXt</code> keyword and text value</li>\n</ul>\n<p>The <code>iTXt</code> chunk contains operator metadata planted during\nfabrication: case number, operator email, and tool name. In a real\ninvestigation, this content would be recorded as evidence and its source\ninvestigated.</p>\n<h3 id=\"examine-the-raw-bytes\">2.3 Examine the raw bytes</h3>\n<p>Locate the <code>iTXt</code> marker directly:</p>\n<pre class=\"bash\"><code>xxd graphic.png | grep -A2 &quot;6954 5874&quot;</code></pre>\n<p><code>69 54 58 74</code> is the ASCII encoding of <code>iTXt</code>.\nThe four bytes before the type field are the chunk length\n(big-endian).</p>\n<hr />"
+  },
+  {
+    "title": "Task 3 — PDF forensics",
+    "content": "<h3 id=\"motivation\">Motivation</h3>\n<p>PDF files embed document metadata that persists across format\nconversions and printing. Incremental updates allow a PDF to be edited\nwithout replacing the original content, creating a layered edit history\nvisible at the byte level.</p>\n<h3 id=\"extract-metadata-with-exiftool\">3.1 Extract metadata with\n<code>exiftool</code></h3>\n<pre class=\"bash\"><code>exiftool document.pdf</code></pre>\n<p>Record the following fields:</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Field</th>\n<th>Value</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td><code>Author</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Creator</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>Producer</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Create Date</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>Modify Date</code></td>\n<td></td>\n</tr>\n</tbody>\n</table>\n<p>Note that <code>Creator</code> identifies the application that\nproduced the original document (<code>Microsoft Word</code>), while\n<code>Producer</code> identifies the conversion tool\n(<code>Acrobat Distiller</code>). These are separate provenance\nindicators.</p>\n<h3 id=\"identify-the-incremental-update\">3.2 Identify the incremental\nupdate</h3>\n<pre class=\"bash\"><code>grep -c &quot;%%EOF&quot; document.pdf</code></pre>\n<p>A value of <code>2</code> confirms two <code>%%EOF</code> markers —\nthe original file and one incremental update appended afterward.</p>\n<p>Locate the <code>startxref</code> values:</p>\n<pre class=\"bash\"><code>grep -n &quot;startxref&quot; document.pdf</code></pre>\n<p>Two <code>startxref</code> entries will appear. The second (later)\none belongs to the incremental update. The trailer of the update\ncontains a <code>/Prev</code> key pointing back to the original xref\ntable offset.</p>\n<h3 id=\"inspect-the-update-object\">3.3 Inspect the update object</h3>\n<pre class=\"bash\"><code>grep -A4 &quot;Incremental update&quot; document.pdf</code></pre>\n<p>The appended annotation object contains the reviewer’s name and\ntimestamp — information added after the document was originally\nauthored. Both the original author (<code>Margaret Chen</code>) and the\nreviewer (<code>D. Torres</code>) are now recoverable from the file.</p>\n<h3 id=\"scan-for-active-content-indicators\">3.4 Scan for active content\nindicators</h3>\n<p><code>pdfid.py</code> was staged to\n<code>~/formats-lab/pdftools/</code> by the setup script:</p>\n<pre class=\"bash\"><code>python3 ~/formats-lab/pdftools/pdfid.py document.pdf</code></pre>\n<p><code>pdfid.py</code> counts occurrences of active-content keywords.\nFor <code>document.pdf</code> the counts for <code>/JS</code>,\n<code>/JavaScript</code>, <code>/Launch</code>, and\n<code>/OpenAction</code> should all be zero — this is a benign\ndocument.</p>\n<hr />"
+  },
+  {
+    "title": "Task 4 — Office document metadata",
+    "content": "<h3 id=\"motivation\">Motivation</h3>\n<p>Both legacy OLE-based Office formats (<code>.doc</code>) and modern\nOOXML formats (<code>.docx</code>) embed rich author and revision\nmetadata that survives format conversion. OOXML’s ZIP container allows\ndirect inspection of its XML parts without specialized tools.</p>\n<h3 id=\"ooxml-inspect-with-exiftool\">4.1 OOXML: inspect with\n<code>exiftool</code></h3>\n<pre class=\"bash\"><code>exiftool report.docx</code></pre>\n<p>Record:</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Field</th>\n<th>Value</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td><code>Creator</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Last Modified By</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>Create Date</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Modify Date</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>Revision Number</code></td>\n<td></td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"ooxml-inspect-the-zip-structure\">4.2 OOXML: inspect the ZIP\nstructure</h3>\n<pre class=\"bash\"><code>unzip -l report.docx</code></pre>\n<p>Identify the <code>docProps/core.xml</code> and\n<code>docProps/app.xml</code> parts.</p>\n<h3 id=\"read-core.xml-directly\">4.3 Read core.xml directly</h3>\n<pre class=\"bash\"><code>unzip -p report.docx docProps/core.xml | xmllint --format -</code></pre>\n<p>The <code>dc:creator</code> field holds the original author. The\n<code>cp:lastModifiedBy</code> field holds the account that last saved\nthe file. These may differ — here they identify two separate individuals\n(<code>James Wilson</code> and <code>Sarah Okonkwo</code>), establishing\nan edit chain.</p>\n<h3 id=\"read-app.xml\">4.4 Read app.xml</h3>\n<pre class=\"bash\"><code>unzip -p report.docx docProps/app.xml | xmllint --format -</code></pre>\n<p><code>app.xml</code> exposes the application name and version used to\nsave the file, plus the company name if set in the authoring\napplication’s profile.</p>\n<h3 id=\"ole-inspect-legacy.doc-with-the-helper-script\">4.5 OLE: inspect\nlegacy.doc with the helper script</h3>\n<pre class=\"bash\"><code>python3 ~/formats-lab/scripts/inspect_ole.py legacy.doc</code></pre>\n<p>The script lists all streams in the OLE directory tree, then dumps\nthe <code>SummaryInformation</code> property set. Compare the\n<code>Author</code> and <code>Last saved by</code> fields with those\nextracted from <code>report.docx</code> in step 4.1 — they derive from\nthe same source document and should match.</p>\n<p>Note that the <code>App name</code> field will show\n<code>LibreOffice</code> rather than <code>Microsoft Word</code>. This\nis expected: the <code>.doc</code> file was produced by converting\n<code>report.docx</code> with LibreOffice, so the conversion tool’s name\nappears in the OLE metadata rather than the original authoring\napplication. In a real investigation, an <code>App name</code> value\nthat does not match the stated document provenance is worth noting.</p>\n<hr />"
+  },
+  {
+    "title": "Task 5 — Archive forensics",
+    "content": "<h3 id=\"motivation\">Motivation</h3>\n<p>ZIP archives expose metadata even when their contents are encrypted\nor inaccessible. The EOCD comment field, per-entry timestamps, and the\ncentral directory structure are all available without decryption and can\ncarry intelligence about the archive’s origin and handling.</p>\n<h3 id=\"list-archive-contents-with-zipinfo\">5.1 List archive contents\nwith <code>zipinfo</code></h3>\n<pre class=\"bash\"><code>zipinfo -v archive.zip</code></pre>\n<p><code>zipinfo -v</code> (verbose) shows per-entry compression method,\ntimestamps, CRC-32 values, and the EOCD comment field if present.</p>\n<p>Locate the <code>Archive comment</code> section at the bottom of the\noutput. Record the comment text — it contains a case number, collection\ndate, and examiner name.</p>\n<h3 id=\"examine-timestamps\">5.2 Examine timestamps</h3>\n<p>From the <code>zipinfo -v</code> output, note the timestamp fields\nper entry. Each entry carries two timestamp representations:</p>\n<ul>\n<li><strong>MS-DOS timestamp</strong> (2-second resolution) — in the\nlocal file header and central directory; always present</li>\n<li><strong>Unix extended timestamp (<code>UT</code> extra\nfield)</strong> — 32-bit Unix epoch value in both the local header\n(mtime + atime) and central directory (mtime only); provides full\nUnix-precision timing and identifies the creating platform</li>\n</ul>\n<p>Compare the staggered mtime values across entries — they differ by 17\nseconds each, reflecting the order in which files were added to the\narchive.</p>\n<h3 id=\"scan-firmware.bin-with-binwalk\">5.3 Scan firmware.bin with\n<code>binwalk</code></h3>\n<pre class=\"bash\"><code>binwalk --signature firmware.bin</code></pre>\n<p>Expected output:</p>\n<pre><code>DECIMAL       HEXADECIMAL     DESCRIPTION\n--------------------------------------------------------------------------------\n0             0x0             JPEG image data, JFIF standard 1.01\n&lt;offset&gt;      &lt;hex&gt;           Zip archive data, at least v2.0 to extract,\n                              name: config.txt\n&lt;offset&gt;      &lt;hex&gt;           Zip archive data, at least v2.0 to extract,\n                              name: keys/device.key\n&lt;offset&gt;      &lt;hex&gt;           End of Zip archive, footer length: 22</code></pre>\n<p><code>binwalk</code> identified both the JPEG at offset 0 and a ZIP\narchive appended after the JPEG’s EOI marker. The file is valid as a\nJPEG — any image viewer will display it correctly — but the appended ZIP\ndata is invisible to those tools.</p>\n<h3 id=\"extract-the-embedded-archive\">5.4 Extract the embedded\narchive</h3>\n<pre class=\"bash\"><code>binwalk --extract firmware.bin\nls _firmware.bin.extracted/</code></pre>\n<p><code>binwalk</code> creates an extraction directory. Examine the\nrecovered files:</p>\n<pre class=\"bash\"><code>cat _firmware.bin.extracted/*/config.txt</code></pre>\n<p>The config file contains a password hash and device credentials —\ncontent that would be invisible to a cursory file inspection.</p>\n<h3 id=\"entropy-plot\">5.5 Entropy plot</h3>\n<pre class=\"bash\"><code>binwalk --entropy firmware.bin</code></pre>\n<p>The entropy plot will show a relatively flat region (the JPEG\ncompressed data) followed by a second region corresponding to the\nappended ZIP. Both regions have similar entropy profiles since both use\ndeflate compression.</p>\n<hr />"
+  },
+  {
+    "title": "Task 6 — ELF binary forensics",
+    "content": "<h3 id=\"motivation\">Motivation</h3>\n<p>ELF binaries carry identification artifacts that survive stripping\nand can attribute a binary to a specific compiler version, build\nenvironment, and even a specific project path. Entropy analysis exposes\npacking or encryption that defeats static string extraction.</p>\n<h3 id=\"basic-identification\">6.1 Basic identification</h3>\n<pre class=\"bash\"><code>file normal.elf\nfile packed.elf</code></pre>\n<p>Both files will be identified as ELF executables. Note whether\n<code>file</code> reports each as <code>stripped</code> or\n<code>not stripped</code>.</p>\n<h3 id=\"section-inventory-with-readelf\">6.2 Section inventory with\n<code>readelf</code></h3>\n<pre class=\"bash\"><code>readelf -S --wide normal.elf | head -30\nreadelf -S --wide packed.elf | head -30</code></pre>\n<p>Compare the section tables. <code>normal.elf</code> will have many\nsections including <code>.symtab</code>, <code>.strtab</code>, and\n<code>.debug_*</code> sections. <code>packed.elf</code> will have a\nminimal section table — a hallmark of packed binaries.</p>\n<h3 id=\"build-id-and-notes\">6.3 Build ID and notes</h3>\n<pre class=\"bash\"><code>readelf -n normal.elf</code></pre>\n<p>The <code>GNU</code> note section contains the Build ID — a SHA-1 or\nMD5 hash of the binary’s content at build time. This identifier is\nstable across identical builds and can link multiple samples to the same\nbuild.</p>\n<h3 id=\"compiler-version-from-.comment\">6.4 Compiler version from\n.comment</h3>\n<pre class=\"bash\"><code>readelf -p .comment normal.elf</code></pre>\n<p>The <code>.comment</code> section contains a null-terminated string\nnaming the compiler and version used to produce the binary. This narrows\nthe build environment to a specific GCC release and distribution.</p>\n<p>Try the same on <code>packed.elf</code>:</p>\n<pre class=\"bash\"><code>readelf -p .comment packed.elf 2&gt;&amp;1</code></pre>\n<p>A packed binary typically has no <code>.comment</code> section — the\npacker replaces the original section table with its own stub.</p>\n<h3 id=\"entropy-analysis\">6.5 Entropy analysis</h3>\n<pre class=\"bash\"><code>binwalk -E normal.elf\nbinwalk -E packed.elf</code></pre>\n<p><code>normal.elf</code> will show varying entropy: lower in\n<code>.rodata</code> and data sections, moderate in <code>.text</code>\n(compiled code). <code>packed.elf</code> will show uniformly high\nentropy (approaching 8.0 bits/byte) across its primary load segment —\nthe signature of compressed or encrypted payload.</p>\n<h3 id=\"helper-script\">6.6 Helper script</h3>\n<pre class=\"bash\"><code>python3 ~/formats-lab/scripts/inspect_elf.py normal.elf</code></pre>\n<p>The script prints the ELF identification fields, section inventory,\nBuild ID, and <code>.comment</code> content in a single pass.</p>\n<hr />"
+  },
+  {
+    "title": "Task 7 — PE binary forensics",
+    "content": "<h3 id=\"motivation\">Motivation</h3>\n<p>PE files embed compilation metadata, version resources, and import\ntables that fingerprint the build environment and reveal capability. The\ncompile timestamp, PDB path, and Rich header are artifacts that persist\neven when other metadata is stripped.</p>\n<h3 id=\"basic-identification\">7.1 Basic identification</h3>\n<pre class=\"bash\"><code>file normal.exe\nfile packed.exe</code></pre>\n<p>Both should be identified as PE32+ (or PE32) executables.</p>\n<h3 id=\"section-inventory-and-entropy\">7.2 Section inventory and\nentropy</h3>\n<pre class=\"bash\"><code>binwalk -E normal.exe\nbinwalk -E packed.exe</code></pre>\n<p><code>normal.exe</code> will show characteristic section entropy:\nmoderate for <code>.text</code>, lower for <code>.rdata</code> and\n<code>.data</code>. <code>packed.exe</code> will show a single\nhigh-entropy segment — the compressed original binary.</p>\n<h3 id=\"inspect-the-pe-with-the-helper-script\">7.3 Inspect the PE with\nthe helper script</h3>\n<pre class=\"bash\"><code>python3 ~/formats-lab/scripts/inspect_pe.py normal.exe</code></pre>\n<p>Record:</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Field</th>\n<th>Value</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>Machine type</td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td>Compile timestamp</td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td>Entry point RVA</td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td>Sections</td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td>Imports</td>\n<td></td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"compare-import-tables\">7.4 Compare import tables</h3>\n<pre class=\"bash\"><code>python3 ~/formats-lab/scripts/inspect_pe.py normal.exe 2&gt;&amp;1 | grep -A20 &quot;Imports&quot;\npython3 ~/formats-lab/scripts/inspect_pe.py packed.exe 2&gt;&amp;1 | grep -A20 &quot;Imports&quot;</code></pre>\n<p><code>normal.exe</code> will list its imported DLLs and functions\n(<code>user32.dll</code>, <code>kernel32.dll</code>, etc.).\n<code>packed.exe</code> will show a minimal import table — often just\nthe loader stub’s imports (<code>LoadLibrary</code>,\n<code>GetProcAddress</code>) — since the real imports are resolved at\nruntime by the unpacker.</p>\n<hr />"
+  },
+  {
+    "title": "Task 8 — MP4 and MP3 metadata",
+    "content": "<h3 id=\"motivation\">Motivation</h3>\n<p>Video and audio files from mobile devices embed GPS coordinates,\ndevice identity, and encoder information in their container metadata.\nThis data survives transcoding poorly — comparing encoder strings and\ntimestamps can reveal whether a file is an original recording or a\nre-encoded copy.</p>\n<h3 id=\"mp4-full-metadata-dump\">8.1 MP4: full metadata dump</h3>\n<pre class=\"bash\"><code>exiftool video.mp4</code></pre>\n<p>Locate and record:</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Field</th>\n<th>Value</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td><code>Create Date</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Modify Date</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>GPS Latitude</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>GPS Longitude</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>GPS Altitude</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Encoder</code> / <code>Author</code></td>\n<td></td>\n</tr>\n</tbody>\n</table>\n<p>Note the <code>Create Date</code> format — MP4 stores timestamps as\nseconds since 1904-01-01 (the Mac epoch); <code>exiftool</code> converts\nthis to a readable date.</p>\n<h3 id=\"compare-mp4-timestamps-with-file-system-timestamps\">8.2 Compare\nMP4 timestamps with file system timestamps</h3>\n<pre class=\"bash\"><code>stat video.mp4\nexiftool -CreateDate -ModifyDate video.mp4</code></pre>\n<p>The file system <code>mtime</code> reflects when the file was last\nwritten on this system (during lab setup). The <code>CreateDate</code>\nembedded in the <code>mvhd</code> atom reflects the metadata injected at\ncreation time. In a real investigation, a discrepancy between these\ntimestamps indicates the file was copied or transferred from another\nsystem.</p>\n<h3 id=\"mp3-id3-tag-dump\">8.3 MP3: ID3 tag dump</h3>\n<pre class=\"bash\"><code>exiftool audio.mp3</code></pre>\n<p>Locate:</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Field</th>\n<th>Value</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td><code>Title</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Artist</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>Album</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Year</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>Comment</code></td>\n<td></td>\n</tr>\n<tr class=\"even\">\n<td><code>Picture MIME Type</code></td>\n<td></td>\n</tr>\n<tr class=\"odd\">\n<td><code>Picture Type</code></td>\n<td></td>\n</tr>\n</tbody>\n</table>\n<p>Note that <code>exiftool</code> reports the presence of an embedded\npicture (<code>APIC</code> frame) with a MIME type of\n<code>image/jpeg</code>. This is an independent JPEG artifact embedded\ninside the MP3 file.</p>\n<h3 id=\"extract-the-embedded-apic-image\">8.4 Extract the embedded APIC\nimage</h3>\n<pre class=\"bash\"><code>exiftool -Picture -b audio.mp3 &gt; embedded_cover.jpg\nfile -i embedded_cover.jpg\nexiftool embedded_cover.jpg</code></pre>\n<p>Confirm the extracted file is a valid JPEG. In an investigation, this\nembedded image would be examined as an independent artifact — it may\ncarry its own EXIF metadata, GPS data, or content of evidentiary\nvalue.</p>\n<h3 id=\"verify-the-url-frame\">8.5 Verify the URL frame</h3>\n<pre class=\"bash\"><code>exiftool -UserDefinedURL audio.mp3 2&gt;/dev/null || \\\n    python3 -c &quot;\nfrom mutagen.id3 import ID3\ntags = ID3(&#39;audio.mp3&#39;)\nfor key in tags:\n    if key.startswith(&#39;W&#39;):\n        print(key, &#39;:&#39;, tags[key])\n&quot;</code></pre>\n<p>The <code>WXXX</code> frame contains a URL reference. In real-world\nevidence, URL frames have been used to link files to web resources,\naccounts, or distribution platforms.</p>\n<hr />"
+  },
+  {
+    "title": "Summary",
+    "content": "<p>Work through the table below to consolidate the artifacts recovered\nacross all tasks.</p>\n<table>\n<colgroup>\n<col style=\"width: 33%\" />\n<col style=\"width: 33%\" />\n<col style=\"width: 33%\" />\n</colgroup>\n<thead>\n<tr class=\"header\">\n<th>File</th>\n<th>Format</th>\n<th>Key artifact recovered</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td><code>photo.jpg</code></td>\n<td>JPEG</td>\n<td>GPS coordinates; thumbnail-main mismatch</td>\n</tr>\n<tr class=\"even\">\n<td><code>graphic.png</code></td>\n<td>PNG</td>\n<td>Hidden <code>iTXt</code> chunk: operator, case number</td>\n</tr>\n<tr class=\"odd\">\n<td><code>document.pdf</code></td>\n<td>PDF</td>\n<td>Author chain; incremental update with reviewer</td>\n</tr>\n<tr class=\"even\">\n<td><code>report.docx</code></td>\n<td>OOXML</td>\n<td>Creator / last-modified-by chain; revision 7</td>\n</tr>\n<tr class=\"odd\">\n<td><code>legacy.doc</code></td>\n<td>OLE/CFB</td>\n<td>SummaryInformation author fields</td>\n</tr>\n<tr class=\"even\">\n<td><code>archive.zip</code></td>\n<td>ZIP</td>\n<td>EOCD comment: case number, examiner, date</td>\n</tr>\n<tr class=\"odd\">\n<td><code>firmware.bin</code></td>\n<td>JPEG+ZIP</td>\n<td>Appended ZIP with config file and key</td>\n</tr>\n<tr class=\"even\">\n<td><code>normal.elf</code></td>\n<td>ELF</td>\n<td>Build ID; compiler version in <code>.comment</code></td>\n</tr>\n<tr class=\"odd\">\n<td><code>packed.elf</code></td>\n<td>ELF (packed)</td>\n<td>High entropy; stripped section table</td>\n</tr>\n<tr class=\"even\">\n<td><code>normal.exe</code></td>\n<td>PE</td>\n<td>Compile timestamp; imports; version resource</td>\n</tr>\n<tr class=\"odd\">\n<td><code>packed.exe</code></td>\n<td>PE (packed)</td>\n<td>Minimal imports; high-entropy <code>.text</code></td>\n</tr>\n<tr class=\"even\">\n<td><code>video.mp4</code></td>\n<td>MP4</td>\n<td>GPS atom; encoder; Mac epoch timestamps</td>\n</tr>\n<tr class=\"odd\">\n<td><code>audio.mp3</code></td>\n<td>MP3</td>\n<td>ID3v2 tags; embedded JPEG (APIC); URL frame</td>\n</tr>\n<tr class=\"even\">\n<td><code>mismatch1.pdf</code></td>\n<td>JPEG (renamed)</td>\n<td>Extension contradiction detected by <code>file</code></td>\n</tr>\n<tr class=\"odd\">\n<td><code>mismatch2.docx</code></td>\n<td>ZIP (renamed)</td>\n<td>Extension contradiction; raw ZIP, not OOXML</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"questions-for-review\">Questions for review</h3>\n<ol type=\"1\">\n<li><p><code>document.pdf</code> has two <code>%%EOF</code> markers.\nWhat does each one delimit, and what forensic significance does the\nstructure have?</p></li>\n<li><p>The <code>Software</code> field in <code>photo.jpg</code> names\nAdobe Photoshop, while <code>DateTimeOriginal</code> predates any\nplausible editing session. What two conclusions can you draw, and what\nadditional evidence would strengthen each?</p></li>\n<li><p><code>packed.elf</code> shows near-uniform high entropy across\nits primary segment. Does this confirm the binary is malicious? What\nadditional steps would you take before drawing that conclusion?</p></li>\n<li><p><code>firmware.bin</code> is identified as\n<code>image/jpeg</code> by both <code>file</code> and most image\nviewers. Describe the mechanism that allows the appended ZIP to coexist\nwith the valid JPEG structure without corrupting it.</p></li>\n<li><p>The <code>archive.zip</code> EOCD comment field contains 89 bytes\nof text. What is the maximum length of this field, and what constraint\ngoverns that limit?</p></li>\n</ol>"
+  }
+];
+</script>
+
+<!-- ── Navigation Engine ───────────────────────────────────────── -->
+<script>
+(function () {
+  const steps  = STEPS;
+  const TOTAL  = steps.length;
+  let current  = 0;
+
+  const stepView    = document.getElementById('step-view');
+  const stepList    = document.getElementById('step-list');
+  const btnPrev     = document.getElementById('btn-prev');
+  const btnNext     = document.getElementById('btn-next');
+  const stepCounter = document.getElementById('step-counter');
+  const topbarMeta  = document.getElementById('topbar-meta');
+
+  // Build sidebar
+  steps.forEach((step, i) => {
+    const li = document.createElement('li');
+    li.innerHTML =
+      `<span class="step-num">${i + 1}</span>` +
+      `<span class="step-lbl">${step.title}</span>`;
+    li.addEventListener('click', () => go(i));
+    stepList.appendChild(li);
+  });
+
+  function go(idx) {
+    if (idx < 0 || idx >= TOTAL) return;
+    current = idx;
+
+    stepView.innerHTML =
+      `<div class="step-hdr">` +
+        `<div class="step-badge">${idx + 1}</div>` +
+        `<h1>${steps[idx].title}</h1>` +
+      `</div>` +
+      steps[idx].content;
+
+    // Re-trigger animation
+    stepView.style.animation = 'none';
+    void stepView.offsetWidth;
+    stepView.style.animation = '';
+
+    window.scrollTo(0, 0);
+
+    document.querySelectorAll('#step-list li').forEach((li, i) => {
+      li.classList.toggle('active', i === idx);
+    });
+
+    btnPrev.classList.toggle('hidden', idx === 0);
+    btnNext.textContent = idx === TOTAL - 1 ? 'Done ✓' : 'Next →';
+
+    stepCounter.textContent = `${idx + 1} of ${TOTAL}`;
+    topbarMeta.textContent  = `Step ${idx + 1} / ${TOTAL}`;
+  }
+
+  btnPrev.addEventListener('click', () => go(current - 1));
+  btnNext.addEventListener('click', () => { if (current < TOTAL - 1) go(current + 1); });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(current - 1);
+  });
+
+  go(0);
+})();
+</script>
+</body>
+</html>

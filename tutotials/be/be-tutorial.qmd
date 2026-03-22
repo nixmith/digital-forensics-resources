@@ -1,0 +1,1070 @@
+---
+title: "bulk_extractor Analysis Tutorial"
+subtitle: "CSCI 4623 — Digital Forensics"
+format:
+  closeread-html:
+    css: be-tutorial.css
+    cr-style:
+      narrative-sidebar-width: "2fr"
+---
+
+```{=html}
+<div class="tutorial-meta">
+<strong>Estimated Time:</strong> 60–75 minutes &nbsp;|&nbsp;
+<strong>Prerequisites:</strong> Linux with <code>bulk_extractor</code>, The Sleuth Kit, and <code>exiftool</code> installed &nbsp;|&nbsp;
+<strong>Setup Script:</strong> <a href="setup_be_lab.sh" download>setup_be_lab.sh</a>
+</div>
+```
+
+## Introduction
+
+This tutorial walks you through stream-based forensic extraction using **bulk_extractor**.
+Where TSK navigates filesystem structures to find files, bulk_extractor treats a disk image
+as a flat stream of bytes, scanning every page for recognizable patterns — email addresses,
+credit card numbers, URLs, GPS coordinates, and dozens of other artifact types. It finds
+things hidden in compressed archives, deleted space, swap regions, and slack — places that
+filesystem-aware tools never look.
+
+By the end of this tutorial you will be able to run bulk_extractor against a disk image,
+interpret its output (feature files, histograms, carved data), control which scanners run,
+create stop lists, and bridge bulk_extractor results back to filesystem context using
+`identify_filenames.py`.
+
+### Setup
+
+Run the setup script as root to create the practice image:
+
+```bash
+sudo bash setup_be_lab.sh
+```
+
+This produces `be_lab.dd` — a 128 MiB raw image with a single ext3 partition containing
+planted forensic artifacts: emails, phone numbers, credit cards, URLs, a JPEG with GPS
+metadata, a gzip archive with hidden PII, a BASE64-encoded memo, and a file that was
+deleted after creation. Record the deleted file's inode number from the script output —
+you will need it in Task 11.
+
+Verify the image exists:
+
+```bash
+ls -lh be_lab.dd
+```
+
+You should see a 128M file. If bulk_extractor is not installed, install it:
+
+```bash
+sudo apt install bulk-extractor    # Kali / Ubuntu
+```
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 0 — Orientation                                        -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 0: Orientation — Know Your Image</h2></div>
+```
+
+Before running bulk_extractor, get a baseline understanding of what the filesystem
+contains. This gives you ground truth to compare against bulk_extractor's output later.
+
+::::{.cr-section}
+
+:::{#cr-fsstat}
+```
+$ fsstat -o 2048 be_lab.dd
+
+FILE SYSTEM INFORMATION
+--------------------------------------------
+File System Type: Ext3
+Volume Name: suspect_drive
+Volume ID: [...]
+
+CONTENT INFORMATION
+--------------------------------------------
+Block Range: 0 - 32255
+Block Size: 1024
+[...]
+```
+:::
+
+:::{focus-on="cr-fsstat"}
+Run `fsstat` with the partition offset (2048 sectors) to confirm the filesystem type and
+layout. The volume label `suspect_drive` confirms you have the right image. Note the
+block size — 1024 bytes — which differs from bulk_extractor's 16 MiB page size.
+:::
+
+:::{#cr-fls}
+```
+$ fls -o 2048 -r be_lab.dd
+
+d/d 11: lost+found
+d/d 12: documents
+r/r 13: documents/contacts.txt
+r/r 14: documents/financial_records.txt
+r/r 15: documents/archived_log.gz
+r/r 16: documents/encoded_memo.b64
+r/- 17: documents/destroy_after_reading.txt  (deleted)
+d/d 18: web_cache
+r/r 19: web_cache/browser_history.txt
+d/d 20: personal
+r/r 21: personal/diary.txt
+r/r 22: personal/meetup_photo.jpg
+r/r 23: personal/.swap_fragment
+```
+:::
+
+:::{focus-on="cr-fls"}
+Now list the files with `fls -r`. Notice the allocated files and the one deleted entry
+(inode 17, marked with `(deleted)`). This is the file whose content persists in
+unallocated space. bulk_extractor will find its artifacts even though the filesystem
+no longer points to it.
+
+Count the files: you can see the `.gz` archive, the `.b64` file, the JPEG, and the
+swap fragment. Keep this listing handy — you will use it to verify that bulk_extractor
+finds artifacts from every planted source, including the deleted one.
+:::
+
+::::
+
+::: {.try-it}
+**Try it:** How many regular files does `fls` show (including the deleted one)? What
+artifact types would you expect to find in `contacts.txt` vs. `financial_records.txt`?
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 1 — First Full Scan                                    -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 1: First Full Scan</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-firstscan}
+```
+$ bulk_extractor -o be_output be_lab.dd
+
+bulk_extractor version: 2.1.1
+Input file: be_lab.dd
+Output directory: be_output
+Disk Size: 134217728
+Threads: 4
+Phase 1.
+
+13:�:15 Offset 0MB (0.00%) Done in n/a
+13:45:16 Offset 128MB (100.00%) Done in  0:00:01
+All data are read; waiting for�workers to finish...
+
+Phase 2. Shutting down scanners
+Phase 3. Creating Histograms
+   email_histogram.txt
+   domain_histogram.txt
+   url_histogram.txt
+   [...]
+
+Elapsed time: 0:00:02
+Overall performance: 64.000 MBytes/sec
+```
+:::
+
+:::{focus-on="cr-firstscan"}
+This is the fundamental invocation: `bulk_extractor -o <output_dir> <image>`. The `-o`
+flag specifies where all output goes — bulk_extractor will refuse to run if this
+directory already exists (a safety measure against overwriting evidence).
+
+Watch the three processing phases in the output. **Phase 1** reads the image in
+overlapping 16 MiB pages and dispatches them to scanner threads. **Phase 2** shuts
+down scanners and flushes buffered results. **Phase 3** sorts feature files and
+builds frequency histograms — the "executive summary" of what was found.
+
+On this small 128 MiB image, the scan completes in seconds. On a 500 GB drive with
+all scanners enabled, expect 30–90 minutes depending on hardware and thread count.
+:::
+
+::::
+
+::: {.try-it}
+**Try it:** What happens if you try to run the same command again without deleting
+`be_output/` first? Try it and note the error message — this is an intentional
+forensic safeguard.
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 2 — Explore Output Directory                           -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 2: Explore the Output Directory</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-outputdir}
+```
+$ ls -la be_output/
+
+total 248
+drwxr-xr-x  4 root root  4096 ... .
+drwxr-xr-x  3 root root  4096 ... ..
+-rw-r--r--  1 root root   412 ... alerts.txt
+-rw-r--r--  1 root root  1893 ... ccn.txt
+-rw-r--r--  1 root root     0 ... ccn_track2.txt
+-rw-r--r--  1 root root  2341 ... domain.txt
+-rw-r--r--  1 root root   891 ... domain_histogram.txt
+-rw-r--r--  1 root root  4102 ... email.txt
+-rw-r--r--  1 root root   723 ... email_histogram.txt
+-rw-r--r--  1 root root  1204 ... exif.txt
+-rw-r--r--  1 root root     0 ... find.txt
+drwxr-xr-x  2 root root  4096 ... jpeg/
+-rw-r--r--  1 root root  8924 ... report.xml
+-rw-r--r--  1 root root     0 ... stopped.txt
+-rw-r--r--  1 root root  1567 ... telephone.txt
+-rw-r--r--  1 root root  3218 ... url.txt
+-rw-r--r--  1 root root   934 ... url_histogram.txt
+drwxr-xr-x  2 root root  4096 ... unzip/
+-rw-r--r--  1 root root     0 ... windirs.txt
+[...]
+```
+:::
+
+:::{focus-on="cr-outputdir"}
+Every scan produces this standard structure. The key file types are **feature files**
+(`.txt` — one per artifact category), **histograms** (`*_histogram.txt` — frequency
+counts), **carved data directories** (`jpeg/`, `unzip/`), and the **provenance record**
+(`report.xml` in DFXML format).
+
+Notice `stopped.txt` — if any scanner crashes or is manually stopped, it gets logged
+here. An empty file means everything ran cleanly. Similarly, `alerts.txt` logs anything
+the scanners flagged as especially noteworthy.
+:::
+
+:::{#cr-reportxml}
+```
+$ head -30 be_output/report.xml
+
+<?xml version='1.0' encoding='UTF-8'?>
+<dfxml xmloutputversion='1.0'>
+  <creator version='1.0'>
+    <program>BULK_EXTRACTOR</program>
+    <version>2.1.1</version>
+  </creator>
+  <source>
+    <image_filename>be_lab.dd</image_filename>
+    <image_size>134217728</image_size>
+  </source>
+  <configuration>
+    <scanners>
+      <scanner name="accts">ENABLED</scanner>
+      <scanner name="base64">ENABLED</scanner>
+      <scanner name="email">ENABLED</scanner>
+      <scanner name="exif">ENABLED</scanner>
+      <scanner name="gzip">ENABLED</scanner>
+      [...]
+    </scanners>
+  </configuration>
+  [...]
+</dfxml>
+```
+:::
+
+:::{focus-on="cr-reportxml"}
+The `report.xml` file is your chain-of-custody record for the scan itself. It documents
+exactly which version of bulk_extractor ran, what image was scanned, which scanners
+were enabled, and the start/end timestamps. In a real investigation, this file goes
+into your case documentation alongside the image hash.
+
+Notice how each scanner is listed with its status. This tells you (and any reviewer)
+exactly what analysis was performed.
+:::
+
+::::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 3 — Read Feature Files                                 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 3: Read Feature Files</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-emailtxt}
+```
+$ cat be_output/email.txt
+
+# Feature-File-Version: 1.1
+# Feature-Recorder: email
+49152	jsmith@forensiclab.org	Team Contact List — Project Nightfall\x0a=====
+49231	maria.garcia@evidence.net	Field tech:      maria.garcia@evidence.net
+49298	bob.chen@lawfirm.com	Legal counsel:   bob.chen@lawfirm.com
+49358	darkweb_dealer99@protonmail.ch	External:        darkweb_dealer99@proton
+49487	suspect_alias@tutanota.com	via suspect_alias@tutanota.com\x0aand was
+49552	throwaway_42@guerrillamail.com	using throwaway_42@guerrillamail.com.
+1048576-GZIP-0	operator_x@securemail.onion	--- ENCRYPTED COMMUNICATION LOG
+1048576-GZIP-87	handler99@riseup.net	To:   handler99@riseup.net\x0aDate:
+1048576-GZIP-192	burner_phone@signal.me	Backup contact: burner_phone@signal.me
+1098752-BASE64-52	insider_trade@corpmail.com	flagged for review:\x0a  -
+1098752-BASE64-101	leak_source@whistleblow.org	external communication
+1098752-BASE64-143	cfo_backup@gmail.com	unauthorized cloud storage
+2162688	ghost_op@tutanota.com	Contact: ghost_op@tutanota.com  Backup:
+8421376	tracking_updates@gmail.com	tracking to myself: tracking_updates@gmail
+8454144	k_drops@darkmail.de	contact him at k_drops@darkmail.de\x0aif
+16384000	admin_access@rootkit.cc	SWAP FRAGMENT: admin_access@rootkit.cc
+```
+:::
+
+:::{focus-on="cr-emailtxt"}
+This is the core output format: a **three-column TSV** (tab-separated values). Every
+feature file follows this structure:
+
+  - **Column 1 — Forensic path:** the byte offset (or nested decompression path)
+    where the artifact was found.
+  - **Column 2 — Feature:** the extracted artifact itself.
+  - **Column 3 — Context:** surrounding bytes to help you understand where the
+    artifact appeared.
+
+Look at the first entries — offsets like `49152` and `49231` are simple byte positions
+in the raw image. These come from `contacts.txt`, which sits in an allocated filesystem
+block.
+:::
+
+Now look at the entries with complex forensic paths. The path
+<span class="forensic-path">1048576-GZIP-0</span> means: "go to byte 1,048,576 in
+the image, decompress the GZIP stream found there, and the artifact is at offset 0
+within the decompressed data." This is the content of `archived_log.gz` — bulk_extractor
+automatically decompressed it and scanned the contents. @cr-emailtxt
+
+Similarly, <span class="forensic-path">1098752-BASE64-52</span> means bulk_extractor
+detected BASE64 encoding at byte 1,098,752, decoded it, and found an email address
+52 bytes into the decoded stream. This is the `encoded_memo.b64` file — again, no
+manual decoding needed. @cr-emailtxt
+
+The entry at offset `2162688` is especially interesting — look at its context:
+`ghost_op@tutanota.com`. Cross-reference with `fls` output: this offset falls
+*beyond the allocated files*. This is the **deleted** `destroy_after_reading.txt`.
+bulk_extractor found it because it scans *every byte*, not just allocated space.
+@cr-emailtxt
+
+The entry at `16384000` (`admin_access@rootkit.cc`) came from the planted swap
+fragment — data hidden among random bytes that no filesystem tool would surface.
+@cr-emailtxt
+
+::::
+
+::: {.concept-box}
+**Key concept:** Feature files are bulk_extractor's primary output. The three-column
+format — forensic path, feature, context — is consistent across all feature files.
+Learning to read this format fluently is the single most important skill in this tutorial.
+:::
+
+::: {.try-it}
+**Try it:** Examine `telephone.txt` and `url.txt` the same way. Can you match each
+phone number back to the file it came from? Which URLs came from `browser_history.txt`
+vs. other sources?
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 4 — Forensic Paths in Depth                            -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 4: Interpret Forensic Paths</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-fpaths}
+| Forensic Path | Meaning |
+|:---|:---|
+| `49152` | Simple: byte offset 49152 in the raw image |
+| `1048576-GZIP-0` | At image byte 1048576, decompress GZIP → artifact at offset 0 |
+| `1048576-GZIP-87` | Same GZIP stream, artifact at decoded offset 87 |
+| `1098752-BASE64-52` | At image byte 1098752, decode BASE64 → artifact at offset 52 |
+| `500000-GZIP-0-BASE64-128` | Nested: GZIP at 500000 → decode BASE64 → offset 128 |
+:::
+
+:::{focus-on="cr-fpaths"}
+Forensic paths are bulk_extractor's coordinate system. A simple numeric offset tells
+you exactly where on disk an artifact lives — you can jump to it with
+`dd if=be_lab.dd bs=1 skip=49152 count=100` to see the raw bytes.
+
+Compound paths record each decompression or decoding layer. Reading left to right:
+start at the image offset, apply each transformation in sequence, then the final
+number is the offset within the innermost decoded stream.
+
+In real-world cases, paths can nest deeply: a ZIP file inside a hibernation file
+inside a disk image might produce something like
+<span class="forensic-path">83886080-HIBER-0-ZIP-0-GZIP-1024</span>. Each segment
+is a breadcrumb leading you back to the original bytes.
+:::
+
+Knowing the forensic path lets you verify findings independently. For simple offsets,
+extract the raw bytes:
+
+```bash
+dd if=be_lab.dd bs=1 skip=49152 count=200 2>/dev/null | strings
+```
+
+For compressed paths, you need the original container. The image offset
+(first number) tells you where the compressed blob lives — you can extract it with
+`dd`, decompress manually, and verify the artifact at the given sub-offset. @cr-fpaths
+
+::::
+
+::: {.try-it}
+**Try it:** Pick an email from `email.txt` that has a simple numeric offset. Use `dd`
+and `strings` to verify you can see it at that location in the raw image. Then try
+one with a `GZIP` path — can you find the `.gz` file at that offset?
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 5 — Histogram Analysis                                 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 5: Histogram Analysis</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-emailhist}
+```
+$ cat be_output/email_histogram.txt
+
+# Histogram-File-Version: 1.1
+# Feature-Recorder: email
+n=2	jsmith@forensiclab.org
+n=1	maria.garcia@evidence.net
+n=1	bob.chen@lawfirm.com
+n=1	darkweb_dealer99@protonmail.ch
+n=1	suspect_alias@tutanota.com
+n=1	throwaway_42@guerrillamail.com
+n=1	operator_x@securemail.onion
+n=1	handler99@riseup.net
+n=1	burner_phone@signal.me
+n=1	insider_trade@corpmail.com
+n=1	leak_source@whistleblow.org
+n=1	cfo_backup@gmail.com
+n=1	ghost_op@tutanota.com
+n=1	tracking_updates@gmail.com
+n=1	k_drops@darkmail.de
+n=1	admin_access@rootkit.cc
+```
+:::
+
+:::{focus-on="cr-emailhist"}
+Histograms rank artifacts by frequency. The format is `n=<count>` followed by the
+feature value. On a real 500 GB drive, the email histogram might contain thousands
+of entries — the investigative signal is in the *distribution*.
+
+**High-frequency entries** are usually noise: system accounts, automated notifications,
+web framework addresses baked into cached pages. On a production image, seeing
+`noreply@facebook.com` with `n=847` tells you nothing useful.
+
+**Low-frequency entries** are often interesting: a unique email appearing once or
+twice may be a personal contact, a suspect communication, or a one-time-use address.
+In our lab image every address appears only once or twice, but on real media you
+would filter aggressively.
+
+Think of histograms as the **executive summary**. An investigator reviewing a new
+case might spend ten minutes reading histograms before ever opening a feature file.
+The frequency distribution tells you what is ordinary and what stands out.
+:::
+
+:::{#cr-domainhist}
+```
+$ cat be_output/domain_histogram.txt
+
+n=3	gmail.com
+n=2	tutanota.com
+n=1	forensiclab.org
+n=1	evidence.net
+n=1	lawfirm.com
+n=1	protonmail.ch
+n=1	guerrillamail.com
+n=1	securemail.onion
+n=1	riseup.net
+n=1	signal.me
+n=1	corpmail.com
+n=1	whistleblow.org
+n=1	darkmail.de
+n=1	rootkit.cc
+```
+:::
+
+:::{focus-on="cr-domainhist"}
+The domain histogram aggregates email domains. Notice what jumps out: `securemail.onion`
+(a Tor hidden service), `riseup.net` and `tutanota.com` (privacy-focused providers),
+`guerrillamail.com` (disposable email), `rootkit.cc` (suspicious TLD and name).
+
+On a real case, this histogram immediately reveals the suspect's communication
+preferences. Privacy-focused services in combination with disposable addresses
+paint a pattern of operational security awareness.
+:::
+
+::::
+
+::: {.try-it}
+**Try it:** Examine `url_histogram.txt`. Which domains appear? Do any URLs point to
+internal/private IP addresses (like 192.168.x.x)? What might that tell an
+investigator?
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 6 — Targeted Scanning                                  -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 6: Targeted Scan — accts Scanner Only</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-targeted}
+```
+$ bulk_extractor -o be_accts_only -E accts be_lab.dd
+
+bulk_extractor version: 2.1.1
+[...]
+Phase 1.
+13:52:01 Offset 128MB (100.00%) Done in  0:00:00
+Phase 2. Shutting down scanners
+Phase 3. Creating Histograms
+   ccn_histogram.txt
+
+Elapsed time: 0:00:01
+Overall performance: 128.000 MBytes/sec
+```
+:::
+
+:::{focus-on="cr-targeted"}
+The `-E` flag means *exclusive* — run **only** the named scanner(s), disabling
+everything else. Compare the elapsed time and output: far fewer files are created
+because only the `accts` scanner ran.
+
+This is useful when you know exactly what you are looking for. If the case involves
+financial fraud, running only `accts` (credit cards, bank routing numbers) gives
+you results in a fraction of the time. On a 500 GB image, this can mean minutes
+instead of an hour.
+
+The related flags are:
+
+  - `-e scanner` — enable a scanner that is off by default
+  - `-x scanner` — disable a specific scanner
+  - `-E scanner` — exclusive mode: *only* this scanner runs
+  - `-H` — list all available scanners and their default status
+:::
+
+```bash
+# List all scanners to see what's available:
+bulk_extractor -H
+```
+
+Run this now. You will see scanners grouped by function: pattern-based (email, accts),
+structure-aware (exif, elf), network (net), decompression (gzip, zip, base64), and
+utility (wordlist, find). @cr-targeted
+
+::::
+
+::: {.try-it}
+**Try it:** Run a scan with only the `email` scanner enabled (`-E email`). Compare
+the output directory contents against the full scan — which files are missing?
+How much faster was it?
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 7 — Custom Pattern Search                              -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 7: Custom Pattern Search with -F</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-customfind}
+```
+$ cat suspect_patterns.txt
+ghost_op
+nightfall
+east dock
+rootkit
+
+$ bulk_extractor -o be_find -F suspect_patterns.txt be_lab.dd
+[...]
+
+$ cat be_find/find.txt
+
+# Feature-File-Version: 1.1
+# Feature-Recorder: find
+2162700	ghost_op	Contact: ghost_op@tutanota.com  Backup:
+2162780	nightfall	reference: NIGHTFALL-FINAL\x0a\x0aDestroy
+8421388	east dock	Meeting location — east dock warehouse
+16384032	rootkit	SWAP FRAGMENT: admin_access@rootkit.cc
+```
+:::
+
+:::{focus-on="cr-customfind"}
+The **find scanner** searches for literal strings or regular expressions you provide.
+Create a text file with one pattern per line, then pass it with `-F`.
+
+This is invaluable for case-specific searches. If you know a suspect uses certain
+aliases, codenames, or phrases, you can search the entire disk — including compressed
+and encoded data — for those exact strings.
+
+For inline one-off searches, use `-f pattern` instead of `-F file`:
+
+```bash
+bulk_extractor -o be_find2 -f "nightfall" be_lab.dd
+```
+
+The results appear in `find.txt` using the same three-column feature file format.
+Notice how `ghost_op` was found at offset 2162700 — this is in the unallocated space
+where the deleted file's content persists. The pattern search found a suspect alias
+in data the filesystem no longer references.
+:::
+
+::::
+
+::: {.concept-box}
+**Key concept:** The `-f` / `-F` flags turn bulk_extractor into a high-performance
+grep that works across compressed data, encoded content, and unallocated space. On
+a large image, this is dramatically faster than `strings | grep` because it leverages
+bulk_extractor's parallel page model.
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 8 — Carved Data                                        -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 8: Carved Data — JPEG Analysis</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-carved}
+```
+$ ls be_output/jpeg/
+
+00008192.jpg
+
+$ exiftool be_output/jpeg/00008192.jpg
+
+ExifTool Version Number         : 12.76
+File Name                       : 00008192.jpg
+[...]
+Make                            : Samsung
+Camera Model Name               : Galaxy S23 Ultra
+Date/Time Original              : 2025:09:14 22:30:15
+GPS Latitude                    : 33 deg 44' 56.40" N
+GPS Longitude                   : 84 deg 23' 16.80" W
+Artist                          : J. Smith
+Image Description               : Meeting location — east dock warehouse
+[...]
+```
+:::
+
+:::{focus-on="cr-carved"}
+bulk_extractor's EXIF scanner carved this JPEG from the image and placed it in the
+`jpeg/` subdirectory. The filename (`00008192.jpg`) reflects the byte offset where
+the JPEG header was found.
+
+Run `exiftool` on the carved image. The EXIF metadata reveals critical investigative
+details: the photo was taken with a Samsung Galaxy S23 Ultra on September 14, 2025
+at 10:30 PM. The GPS coordinates (33.749° N, 84.388° W) place the camera at a
+specific physical location. The image description and artist field add context.
+
+This kind of metadata extraction happens automatically on every JPEG bulk_extractor
+encounters — whether the file is allocated, deleted, in slack space, or embedded
+inside a compressed archive.
+
+The EXIF data also appears in `exif.txt`:
+
+```bash
+cat be_output/exif.txt
+```
+
+Here you will see the same information in feature-file format, with forensic paths
+pointing to the exact byte offsets of each EXIF tag in the image.
+:::
+
+::::
+
+::: {.try-it}
+**Try it:** The GPS coordinates are in the carved EXIF data. Convert them to decimal
+degrees and look them up on a map. What location do they indicate? How would this
+information be useful in a real investigation?
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 9 — Stop Lists                                         -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 9: Stop Lists — Filtering Known-Good Artifacts</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-stoplist}
+```
+# Concept: scan a clean baseline, use its output as a stop list
+
+# 1. Create a minimal "clean" image for comparison
+$ dd if=/dev/zero of=clean.dd bs=1M count=32 status=none
+$ printf 'o\nn\np\n1\n2048\n\nt\n83\nw\n' | fdisk clean.dd >/dev/null 2>&1
+$ LOOP=$(losetup --find --show --offset $((2048*512)) clean.dd)
+$ mkfs.ext3 -q $LOOP
+$ mkdir -p /mnt/clean && mount $LOOP /mnt/clean
+
+# Put known-good content (OS files, default config, etc.)
+$ echo "Default system readme" > /mnt/clean/README
+$ umount /mnt/clean && losetup -d $LOOP
+
+# 2. Scan the clean image
+$ bulk_extractor -o clean_output clean.dd
+
+# 3. Re-scan suspect image using clean output as stop list
+$ bulk_extractor -o be_filtered -w clean_output be_lab.dd
+```
+:::
+
+:::{focus-on="cr-stoplist"}
+A **stop list** is a set of known-good artifacts to exclude from results. The workflow
+mirrors block hash filtering: scan a known-clean baseline, then subtract those artifacts
+from the suspect image's results.
+
+The `-w` flag points to a previous bulk_extractor output directory. During Phase 3,
+bulk_extractor checks each feature against the stop list's histogram files. Any feature
+found in the stop list is omitted from the final output.
+
+In practice, you would build stop lists from a clean install of the same OS version
+the suspect used. This removes thousands of noise entries — email addresses embedded
+in system libraries, URLs in browser defaults, phone number patterns in locale files.
+What remains is content unique to the suspect's activity.
+
+For our lab image, the clean baseline is trivially small and won't filter much. On
+a real case, a properly built stop list can reduce feature file sizes by 80–90%.
+:::
+
+::::
+
+::: {.concept-box}
+**Key concept:** Stop lists are the bulk_extractor equivalent of NSRL/RDS hash filtering.
+Both implement the same forensic principle: subtract the known to surface the unknown.
+The difference is granularity — hash filtering works at the file level; stop lists work
+at the artifact level.
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 10 — identify_filenames.py                             -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 10: Bridging to Filesystem Context</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-identify}
+```
+# 1. Generate DFXML with fiwalk
+$ fiwalk -X be_lab_dfxml.xml be_lab.dd
+
+# 2. Annotate feature files with filenames
+$ python3 identify_filenames.py --all \
+    --xmlfile be_lab_dfxml.xml \
+    be_output/
+
+# 3. Check the annotated output
+$ cat be_output/annotated/email.txt
+
+49152	jsmith@forensiclab.org	[...] documents/contacts.txt
+49231	maria.garcia@evidence.net	[...] documents/contacts.txt
+[...]
+2162688	ghost_op@tutanota.com	[...] (unallocated)
+[...]
+```
+:::
+
+:::{focus-on="cr-identify"}
+This is the critical integration point between bulk_extractor and filesystem-aware tools.
+The problem: bulk_extractor gives you byte offsets, but investigators need to know
+*which file* an artifact came from.
+
+**`fiwalk`** (part of TSK) walks the filesystem and produces a DFXML document mapping
+every file to its byte ranges on disk. **`identify_filenames.py`** (bundled with
+bulk_extractor) reads this mapping and annotates each feature with the corresponding
+filename.
+
+After annotation, the email at offset 49152 is tagged with `documents/contacts.txt` —
+now you know exactly which file it came from. Features from unallocated space get
+marked `(unallocated)`, telling you the source file was deleted.
+
+This bridges the gap between bulk_extractor's stream-based view and TSK's
+filesystem-aware view. Neither tool alone gives the full picture:
+
+  - bulk_extractor finds artifacts TSK cannot see (compressed, encoded, unallocated)
+  - TSK provides file attribution bulk_extractor cannot provide
+  - Together, every artifact gets both a location and a context
+:::
+
+::::
+
+::: {.warning-box}
+**Note:** `identify_filenames.py` ships with bulk_extractor but may not be in your
+`$PATH`. Check `/usr/share/bulk_extractor/` or the source repository's `python/`
+directory. If `fiwalk` is not installed, `apt install sleuthkit` provides it.
+:::
+
+::: {.try-it}
+**Try it:** After running `identify_filenames.py`, examine the annotated email file.
+Which emails map to allocated files? Which are marked as unallocated? Does this match
+what you expected from the `fls` listing in Task 0?
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 11 — Deleted File Recovery                             -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 11: Deleted File Recovery via Byte Offsets</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-deleted}
+```
+# From email.txt, we saw ghost_op@tutanota.com at offset 2162688
+# This offset falls outside any allocated file
+
+# Verify with dd:
+$ dd if=be_lab.dd bs=1 skip=2162688 count=256 2>/dev/null | strings
+
+EYES ONLY — DELETE IMMEDIATELY
+
+Meeting confirmed for 2025-09-15 at 0200 hours.
+Contact: ghost_op@tutanota.com  Backup: 555-000-1234
+
+Wire $50,000 to account 9876543210, routing 071000013.
+Use reference: NIGHTFALL-FINAL
+
+Destroy this message.
+
+# Cross-reference with TSK: use the inode number from setup script
+$ icat -o 2048 be_lab.dd <DELETED_INODE>
+
+EYES ONLY — DELETE IMMEDIATELY
+[... same content ...]
+```
+:::
+
+:::{focus-on="cr-deleted"}
+This task demonstrates the investigative power of combining bulk_extractor with TSK.
+bulk_extractor found the email `ghost_op@tutanota.com` at byte offset 2162688.
+The `identify_filenames.py` annotation (or manual cross-referencing) reveals this
+offset is in unallocated space — the file was deleted.
+
+Using the raw offset, `dd` extracts the bytes directly. You can see the full content
+of the deleted file: meeting times, phone numbers, wire transfer details, and the
+codename "NIGHTFALL-FINAL."
+
+If you recorded the deleted inode from the setup script, `icat` recovers the same
+content through the filesystem metadata path. Both methods reach the same data — one
+via raw byte offset (bulk_extractor's worldview), the other via inode number
+(TSK's worldview).
+
+This is the pattern that makes bulk_extractor invaluable in real investigations. The
+suspect deleted a file believing it was gone. bulk_extractor's stream scan found
+every artifact in it regardless.
+:::
+
+::::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 12 — Trace GZIP Decompression Path                     -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 12: Trace a Forensic Path Through GZIP</h2></div>
+```
+
+::::{.cr-section}
+
+:::{#cr-gziptrace}
+```
+# email.txt shows: 1048576-GZIP-0  operator_x@securemail.onion
+# Let's trace this path manually.
+
+# 1. Extract bytes starting at image offset 1048576
+$ dd if=be_lab.dd bs=1 skip=1048576 count=4096 2>/dev/null | \
+    file -
+
+/dev/stdin: gzip compressed data [...]
+
+# 2. Extract and decompress
+$ dd if=be_lab.dd bs=1 skip=1048576 count=4096 2>/dev/null | \
+    gunzip 2>/dev/null | head -5
+
+--- ENCRYPTED COMMUNICATION LOG (recovered) ---
+
+From: operator_x@securemail.onion
+To:   handler99@riseup.net
+Date: 2025-09-10
+
+# 3. The "-0" means offset 0 in the decompressed stream
+#    — the email starts at the very beginning of the decoded data.
+```
+:::
+
+:::{focus-on="cr-gziptrace"}
+This task makes forensic paths concrete. The path
+<span class="forensic-path">1048576-GZIP-0</span> told us: go to byte 1,048,576
+in the image, find a GZIP stream, decompress it, and the artifact is at offset 0.
+
+We traced each segment manually. First, `dd` extracts bytes at the image offset.
+Piping to `file` confirms it is gzip compressed data. Then `gunzip` decompresses the
+stream, revealing the hidden communication log with `operator_x@securemail.onion`
+right at the beginning (offset 0).
+
+bulk_extractor's recursive decompression scanners did this automatically during
+Phase 1. When the GZIP scanner detected a valid gzip signature, it decompressed
+the data into a temporary buffer and re-submitted it to all other scanners. The
+email scanner then found the addresses in the decompressed content and recorded
+the compound forensic path.
+
+The same mechanism works for ZIP archives, BASE64 encoding, Windows hibernation
+files (HIBER), and other container formats. Each decompression layer adds a segment
+to the forensic path, creating a complete trail back to the original bytes.
+:::
+
+::::
+
+::: {.try-it}
+**Try it:** Repeat this process for a `BASE64` path from `email.txt`. Extract the
+raw bytes at the base image offset, decode with `base64 -d`, and verify you can
+find the email at the indicated sub-offset. How does the decoded content compare
+to what you see in the `.b64` file on the filesystem?
+:::
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TASK 13 — Capstone Triage Report                            -->
+<!-- ════════════════════════════════════════════════════════════ -->
+
+```{=html}
+<div class="sticky-header"><h2>Task 13: Capstone — Triage Report</h2></div>
+```
+
+::: {.capstone-box}
+**Scenario:** You have been asked to perform an initial triage of `be_lab.dd` and produce
+a brief intelligence summary for the lead investigator. Your report should synthesize
+findings from bulk_extractor output, filesystem analysis, and cross-referencing.
+:::
+
+Use every technique from this tutorial to compile your report. The following one-liners
+will help you extract specific intelligence:
+
+```bash
+# Count unique email addresses
+cut -f2 be_output/email.txt | grep -v '^#' | sort -u | wc -l
+
+# Extract all .ru / .onion / privacy-focused domains
+cut -f2 be_output/domain.txt | grep -v '^#' | \
+    grep -E '\.(ru|onion|ch|de)$' | sort -u
+
+# Find features from unallocated space (offsets not in any file)
+# After running identify_filenames.py:
+grep '(unallocated)' be_output/annotated/email.txt
+
+# List all credit card numbers found
+cut -f2 be_output/ccn.txt | grep -v '^#' | sort -u
+
+# Cross-reference phone numbers with sources
+paste <(cut -f1 be_output/telephone.txt) \
+      <(cut -f2 be_output/telephone.txt) | grep -v '^#'
+```
+
+::::{.cr-section}
+
+:::{#cr-capstone}
+**Your triage report should address:**
+
+1. **Communication profile:** What email addresses and domains were found?
+   Which suggest privacy-conscious behavior?
+
+2. **Financial artifacts:** What credit card numbers, bank routing numbers,
+   or wire transfer details were recovered?
+
+3. **Location intelligence:** What GPS coordinates or physical locations
+   are referenced? What device took the photo?
+
+4. **Hidden data:** What did recursive decompression and BASE64 decoding
+   reveal that a filesystem-only search would miss?
+
+5. **Deleted evidence:** What was in the deleted file? What were the
+   suspect's instructions?
+
+6. **Unallocated artifacts:** What was found in the swap-like fragment?
+   What does this suggest about other data that may have existed?
+
+7. **Investigative leads:** Based on all findings, what specific follow-up
+   actions would you recommend?
+:::
+
+:::{focus-on="cr-capstone"}
+This exercise integrates everything. You are not just running tools — you are
+synthesizing outputs from bulk_extractor (feature files, histograms, carved data),
+TSK (filesystem listing, deleted inode recovery), and shell utilities (grep, cut,
+sort) into a coherent investigative narrative.
+
+A good triage report is concise: one to two pages that tell the lead investigator
+what was found, what it means, and what to do next. Cite specific evidence — byte
+offsets, filenames, feature file entries — so every claim is verifiable.
+
+This is the workflow you will use on real forensic images. The image will be larger,
+the artifacts more numerous, and the noise louder — but the process is identical:
+scan, read histograms, examine features, bridge to filesystem context, and
+synthesize.
+:::
+
+::::
+
+
+## Summary
+
+You have now completed a full bulk_extractor workflow:
+
+  - **Task 0:** Established filesystem ground truth with TSK
+  - **Tasks 1–2:** Ran a full scan and explored the output structure
+  - **Tasks 3–4:** Read feature files and interpreted forensic paths
+  - **Task 5:** Used histograms for frequency-based triage
+  - **Task 6:** Ran targeted scans with scanner selection flags
+  - **Task 7:** Searched for case-specific patterns with `-F`
+  - **Task 8:** Analyzed carved JPEG metadata with EXIF data
+  - **Task 9:** Built and applied stop lists for noise reduction
+  - **Task 10:** Bridged bulk_extractor output to filesystem context
+  - **Task 11:** Recovered deleted file content via byte offsets
+  - **Task 12:** Manually traced a forensic path through GZIP decompression
+  - **Task 13:** Synthesized all findings into an investigative triage report
+
+The central lesson: **bulk_extractor and TSK are complementary.** bulk_extractor
+finds artifacts that filesystem tools cannot see — compressed, encoded, deleted,
+fragmented. TSK provides the file attribution and directory context that
+bulk_extractor cannot. Professional forensic analysis uses both.
