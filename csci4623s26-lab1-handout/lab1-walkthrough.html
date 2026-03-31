@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 1: Block Device and Filesystem Forensics — CSCI 4623 — Digital Forensics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:        #1a2744;
+  --navy-mid:    #243460;
+  --navy-light:  #2e3f72;
+  --blue:        #2563eb;
+  --blue-hover:  #1d4ed8;
+  --blue-light:  #dbeafe;
+  --blue-xlight: #eff6ff;
+  --sidebar-w:   260px;
+  --topbar-h:    58px;
+  --text:        #1e293b;
+  --text-muted:  #64748b;
+  --bg-page:     #ffffff;
+  --bg-sidebar:  #f8fafc;
+  --bg-code:     #0d1526;
+  --bg-code-inline: #f1f5f9;
+  --border:      #e2e8f0;
+  --border-mid:  #cbd5e1;
+  --green:       #16a34a;
+  --green-light: #f0fdf4;
+  --amber:       #d97706;
+  --amber-light: #fffbeb;
+  --font-ui:     'Exo 2', 'Segoe UI', sans-serif;
+  --font-body:   'Open Sans', 'Segoe UI', sans-serif;
+  --font-code:   'Consolas', 'Cascadia Code', 'Fira Mono', monospace;
+  --radius:      8px;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--bg-page);
+  overflow-x: hidden;
+  font-size: 15px;
+}
+
+/* ── Top Bar ───────────────────────────────────────────────────── */
+#topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  background: linear-gradient(100deg, var(--navy) 0%, var(--navy-mid) 60%, var(--navy-light) 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  z-index: 200;
+  gap: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+#topbar .course-tag {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-right: 14px;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+#topbar .tutorial-title {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  padding-left: 14px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#topbar .spacer { flex: 1; }
+
+#topbar .meta {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────── */
+#sidebar {
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+}
+
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-track { background: transparent; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
+
+#step-list {
+  list-style: none;
+  padding: 12px 0 40px;
+}
+
+#step-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 16px 8px 14px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+  user-select: none;
+}
+
+#step-list li:hover { background: #eef2fa; }
+
+#step-list li.active {
+  background: var(--blue-light);
+  border-left-color: var(--blue);
+}
+
+#step-list li.active .step-num {
+  background: var(--blue);
+  color: #fff;
+}
+
+#step-list li.active .step-lbl {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  transition: background 0.12s;
+}
+
+.step-lbl {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  transition: color 0.12s;
+}
+
+/* ── Main ──────────────────────────────────────────────────────── */
+#main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--topbar-h);
+  min-height: calc(100vh - var(--topbar-h));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* ── Step View ─────────────────────────────────────────────────── */
+#step-view {
+  width: 100%;
+  max-width: 860px;
+  padding: 48px 60px 20px;
+  flex: 1;
+  animation: fadeIn 0.18s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Step header */
+.step-hdr {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--border);
+}
+
+.step-badge {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(26,39,68,0.3);
+}
+
+.step-hdr h1 {
+  font-family: var(--font-ui);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.2;
+}
+
+/* ── Content Typography ────────────────────────────────────────── */
+#step-view h2 {
+  font-family: var(--font-ui);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 36px 0 10px;
+}
+
+#step-view h3 {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--navy-light);
+  margin: 28px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#step-view p {
+  line-height: 1.78;
+  margin-bottom: 14px;
+  color: #2d3748;
+}
+
+#step-view ul, #step-view ol {
+  margin: 8px 0 18px 22px;
+}
+
+#step-view li {
+  line-height: 1.7;
+  margin-bottom: 5px;
+}
+
+#step-view strong { font-weight: 600; color: var(--navy); }
+
+/* Inline code */
+#step-view code {
+  font-family: var(--font-code);
+  font-size: 0.83em;
+  background: var(--bg-code-inline);
+  color: var(--navy);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* Code blocks */
+#step-view pre {
+  background: var(--bg-code);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin: 12px 0 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+#step-view pre code {
+  font-family: var(--font-code);
+  font-size: 0.815rem;
+  color: #cdd9f0;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1.65;
+  white-space: pre;
+  border-radius: 0;
+}
+
+/* Explanation panel — replaces closeread sticky */
+.expl {
+  background: var(--blue-xlight);
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 16px 20px;
+  margin: 0 0 28px;
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: #1e3a5f;
+}
+
+.expl p { color: #1e3a5f; margin-bottom: 10px; }
+.expl p:last-child { margin-bottom: 0; }
+.expl code { background: #dbeafe; color: #1e3a5f; border-color: #93c5fd; }
+.expl strong { color: var(--navy); }
+
+/* Callout boxes */
+.callout {
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin: 20px 0;
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
+.callout p { margin-bottom: 8px; }
+.callout p:last-child { margin-bottom: 0; }
+
+.callout.try-it {
+  background: var(--green-light);
+  border-left: 4px solid var(--green);
+  color: #14532d;
+}
+.callout.try-it strong { color: var(--green); }
+.callout.try-it code  { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+.callout.capstone {
+  background: var(--amber-light);
+  border-left: 4px solid var(--amber);
+  color: #78350f;
+}
+.callout.capstone strong { color: var(--amber); }
+
+.callout.info {
+  background: var(--blue-xlight);
+  border-left: 4px solid var(--blue);
+  color: #1e3a5f;
+}
+.callout.info code { background: #dbeafe; color: #1e3a5f; border-color: #93c5fd; }
+
+/* Duration badge on intro */
+.duration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--blue-light);
+  color: var(--blue);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #bfdbfe;
+}
+
+.duration-badge::before {
+  content: '⏱';
+  font-size: 0.85em;
+}
+
+/* Placeholder box for missing/incomplete sections */
+.placeholder {
+  border: 2px dashed var(--border-mid);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 20px 0;
+  background: #fafafa;
+}
+
+/* forensic-path inline span */
+.forensic-path {
+  font-family: var(--font-code);
+  font-size: 0.9em;
+  background: var(--bg-code-inline);
+  color: var(--navy);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* ── Bottom Nav ────────────────────────────────────────────────── */
+#nav-bar {
+  width: 100%;
+  max-width: 860px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 60px 48px;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+}
+
+.nav-btn {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 2px solid var(--blue);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.01em;
+  background: none;
+}
+
+.nav-btn.prev { background: #fff; color: var(--blue); }
+.nav-btn.prev:hover { background: var(--blue-light); }
+
+.nav-btn.next { background: var(--blue); color: #fff; }
+.nav-btn.next:hover { background: var(--blue-hover); border-color: var(--blue-hover); }
+
+.nav-btn.hidden { visibility: hidden; pointer-events: none; }
+
+.nav-step-counter {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ─────────────────────────────────────────────────── -->
+<header id="topbar">
+  <span class="course-tag">CSCI 4623 — Digital Forensics</span>
+  <span class="tutorial-title">Lab 1: Block Device and Filesystem Forensics</span>
+  <span class="spacer"></span>
+  <span class="meta" id="topbar-meta"></span>
+</header>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────── -->
+<nav id="sidebar">
+  <ol id="step-list"></ol>
+</nav>
+
+<!-- ── Main ────────────────────────────────────────────────────── -->
+<main id="main">
+  <div id="step-view"></div>
+  <div id="nav-bar">
+    <button class="nav-btn prev hidden" id="btn-prev">&#8592; Back</button>
+    <span class="nav-step-counter" id="step-counter"></span>
+    <button class="nav-btn next" id="btn-next">Next &#8594;</button>
+  </div>
+</main>
+
+<!-- ── Step Data (injected by qmd2codelab.py) ──────────────────── -->
+<script>
+const STEPS = [
+  {
+    "title": "Scenario",
+    "content": "<p>A USB drive has been seized from a departing employee suspected of\nexfiltrating proprietary data. You have been given a forensic image of\nthe drive: <code>exhibit-a.dd</code>. Your job is to examine it\nsystematically, document every finding, and prepare notes that will\ncarry forward into the homework assignment.</p>\n<p>Work through the tasks in order. Record every command you run and its\noutput — this material is required for the homework.</p>\n<blockquote>\n<p><strong>Note on sample output.</strong> Each task includes expected\nor representative output to help you confirm you are on the right track.\nThe exact values you observe — inode numbers, timestamps, byte offsets,\nhashes — will reflect the specific image you have been given and may\ndiffer from what is shown here. If your output has the same structure\nand type of content, you are in the right place.</p>\n</blockquote>\n<hr />"
+  },
+  {
+    "title": "Task 0 — Image Integrity",
+    "content": "<p>Before examining any evidence, establish a cryptographic\nbaseline.</p>\n<pre class=\"bash\"><code>sha256sum exhibit-a.dd\nmd5sum    exhibit-a.dd</code></pre>\n<p>Record both hashes. Every finding in your report is contingent on\nthese values matching the ones provided by the instructor. If they do\nnot match, stop and report the discrepancy before proceeding.</p>\n<p><strong>Expected output:</strong></p>\n<pre><code>2a2c1f9afaa67085b265b2d0f8ee63eb129f75c1951c14aaaf72b4c1e987417a  exhibit-a.dd</code></pre>\n<hr />"
+  },
+  {
+    "title": "Task 1 — Partition Layout",
+    "content": "<p>Examine the partition structure of the image.</p>\n<pre class=\"bash\"><code>mmls exhibit-a.dd</code></pre>\n<p><code>mmls</code> reads the partition table and prints each region of\nthe disk — allocated partitions as well as gaps and unallocated space.\nThe output uses sector units; the sector size for this image is 512\nbytes.</p>\n<p><strong>Expected output:</strong></p>\n<pre><code>DOS Partition Table\nOffset Sector: 0\nUnits are in 512-byte sectors\n\n      Slot      Start        End          Length       Description\n000:  Meta      0000000000   0000000000   0000000001   Primary Table (#0)\n001:  -------   0000000001   0000002047   0000002047   Unallocated\n002:  000:000   0000002048   0000524287   0000522240   NTFS / exFAT (0x07)</code></pre>\n<p>From the output, record:</p>\n<ul>\n<li>How many partitions are in the table, and of what type?</li>\n<li>Where does the NTFS partition start and end, in sectors?</li>\n<li>What unallocated regions are present, and where?</li>\n</ul>\n<p>You will pass the partition start sector to subsequent TSK commands\nusing the <code>-o</code> flag. Note it now.</p>\n<hr />"
+  },
+  {
+    "title": "Task 2 — Filesystem Characterization",
+    "content": "<p>Examine the NTFS partition. The <code>-o</code> flag takes the\npartition start sector from Task 1.</p>\n<pre class=\"bash\"><code>fsstat -o 2048 exhibit-a.dd</code></pre>\n<p><strong>Expected output (abridged):</strong></p>\n<pre><code>FILE SYSTEM INFORMATION\n--------------------------------------------\nFile System Type: NTFS\nVolume Serial Number: ...\nVolume Name: WORK_USB\nVersion: Windows XP\n\nMETADATA INFORMATION\n--------------------------------------------\nFirst Cluster of MFT: 2\nFirst Cluster of MFT Mirror: 32766\nSize of MFT Entries: 1024 bytes\nSize of Index Records: 4096 bytes\nRoot Directory: 5\n\nCONTENT INFORMATION\n--------------------------------------------\nSector Size: 512\nCluster Size: 4096\nTotal Cluster Range: 0 - 65279\nTotal Sector Range: 0 - 522239</code></pre>\n<p>Record:</p>\n<ul>\n<li>Volume label</li>\n<li>Sector size and cluster size</li>\n<li>MFT entry size and index entry size</li>\n<li>Total sector and cluster counts</li>\n</ul>\n<hr />"
+  },
+  {
+    "title": "Task 3 — File Enumeration",
+    "content": "<p>List all filesystem entries in the NTFS partition, including deleted\nones. The flags <code>-r</code> (recursive) and <code>-p</code> (full\npaths) give a complete view of the directory tree.</p>\n<pre class=\"bash\"><code>fls -o 2048 -r -p exhibit-a.dd</code></pre>\n<p><strong>Expected output (abridged):</strong></p>\n<pre><code>r/r 4-128-4:    $AttrDef\nr/r 8-128-2:    $BadClus\nr/r 8-128-1:    $BadClus:$Bad\nr/r 6-128-4:    $Bitmap\nr/r 7-128-1:    $Boot\nd/d 11-144-4:   $Extend\nr/r 2-128-1:    $LogFile\nr/r 0-128-1:    $MFT\nr/r 1-128-1:    $MFTMirr\nr/r 9-128-4:    $Secure\nr/r 9-144-3:    $Secure:$SDH\nr/r 9-144-2:    $Secure:$SII\nr/r 10-128-1:   $UpCase\nr/r 3-128-3:    $Volume\nd/d 32-144-1:   Documents\nr/r 33-128-1:   Documents/Q3_review.docx\nr/r 34-128-1:   Documents/team_contacts.xlsx\nd/d 35-144-1:   Downloads\nr/r 36-128-1:   Downloads/WinSCP-5.21.8-Setup.exe\nr/r 37-128-1:   Downloads/putty.exe\nd/d 38-144-1:   Pictures\nr/r 39-128-1:   Pictures/office_floorplan.png\nr/r 40-128-1:   Pictures/whiteboard_20240912.jpg\nr/r 41-128-1:   meeting_notes.docx\nr/r 42-128-1:   quarterly_report.pdf\n-/r * 75-128-2: readme.txt</code></pre>\n<p>Entry types in the output:</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Prefix</th>\n<th>Meaning</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td><code>r/r</code></td>\n<td>Regular file, allocated</td>\n</tr>\n<tr class=\"even\">\n<td><code>d/d</code></td>\n<td>Directory, allocated</td>\n</tr>\n<tr class=\"odd\">\n<td><code>-/r *</code></td>\n<td>Regular file, deleted (MFT entry still present)</td>\n</tr>\n</tbody>\n</table>\n<p>Note: the output begins with a block of NTFS metadata files — entries\nwhose names start with <code>$</code>, such as <code>$MFT</code>,\n<code>$Bitmap</code>, and <code>$Volume</code>. These are\nfilesystem-internal structures maintained by NTFS itself, not user\nfiles. Skip past them to the user-visible files and directories.</p>\n<p>Make a list of all user-visible entries. Note the inode number for\neach entry you intend to examine further.</p>\n<hr />"
+  },
+  {
+    "title": "Task 4 — File Timeline",
+    "content": "<p>For each user file identified in Task 3 — skip the\n<code>$</code>-prefixed NTFS metadata entries — run <code>istat</code>\nto retrieve its timestamps:</p>\n<pre class=\"bash\"><code>istat -o 2048 exhibit-a.dd &lt;inode&gt;</code></pre>\n<p>Look for the <code>File Modified</code> field in the\n<code>$STANDARD_INFORMATION</code> section of the output. Example for\n<code>Documents/Q3_review.docx</code>:</p>\n<pre><code>$STANDARD_INFORMATION Attribute Values:\nFlags: Archive\nOwner ID: 0\nSecurity ID: 261  (...)\nCreated:        2025-12-22 15:07:22.000000000 (UTC)\nFile Modified:  2025-12-22 15:07:22.000000000 (UTC)\nMFT Modified:   2025-12-22 15:07:22.000000000 (UTC)\nAccessed:       2025-12-22 15:07:22.000000000 (UTC)</code></pre>\n<p>Collect the <code>File Modified</code> timestamp for each user file\nand arrange them in chronological order. You should have around ten\nentries.</p>\n<p><strong>Expected result</strong> (timestamps reflect the date the\nimage was built for your course section — the relative order and pattern\nare what matter):</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>File Modified</th>\n<th>Filename</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>2025-12-07</td>\n<td><code>Documents/team_contacts.xlsx</code></td>\n</tr>\n<tr class=\"even\">\n<td>2025-12-22</td>\n<td><code>Documents/Q3_review.docx</code></td>\n</tr>\n<tr class=\"odd\">\n<td>2025-12-27</td>\n<td><code>Downloads/putty.exe</code></td>\n</tr>\n<tr class=\"even\">\n<td>2025-12-27</td>\n<td><code>Downloads/WinSCP-5.21.8-Setup.exe</code></td>\n</tr>\n<tr class=\"odd\">\n<td>2026-02-09</td>\n<td><code>Pictures/whiteboard_20240912.jpg</code></td>\n</tr>\n<tr class=\"even\">\n<td>2026-02-24</td>\n<td><code>Pictures/office_floorplan.png</code></td>\n</tr>\n<tr class=\"odd\">\n<td>2026-03-05</td>\n<td><code>meeting_notes.docx</code></td>\n</tr>\n<tr class=\"even\">\n<td>2026-03-08</td>\n<td><code>quarterly_report.pdf</code></td>\n</tr>\n<tr class=\"odd\">\n<td>2026-03-12</td>\n<td><code>readme.txt</code> (deleted)</td>\n</tr>\n</tbody>\n</table>\n<p>Consider:</p>\n<ul>\n<li>Are there any files whose dates cluster together unexpectedly?</li>\n<li>Are there any dates that seem inconsistent with the others?</li>\n<li>Does the order suggest anything about how the drive was used?</li>\n</ul>\n<p>Record your observations. Patterns across timestamps are often more\nrevealing than any individual file.</p>\n<hr />"
+  },
+  {
+    "title": "Task 5 — Deleted File Recovery",
+    "content": "<p>The deleted entry in the <code>fls</code> output has its line\nbeginning with <code>-/r *</code>. The inode number follows the\n<code>*</code>.</p>\n<p>Examine its metadata:</p>\n<pre class=\"bash\"><code>istat -o 2048 exhibit-a.dd 75</code></pre>\n<p><strong>Expected output (abridged):</strong></p>\n<pre><code>MFT Entry Header Values:\nEntry: 75        Sequence: 2\n$LogFile Sequence Number: ...\nNot Allocated File\n\n$STANDARD_INFORMATION Attribute Values:\n...\nCreated:        2026-03-12 22:03:17.000000000 (UTC)\nFile Modified:  2026-03-12 22:03:17.000000000 (UTC)\nMFT Modified:   2026-03-12 22:03:17.000000000 (UTC)\nAccessed:       2026-03-12 22:03:17.000000000 (UTC)\n\n$FILE_NAME Attribute Values:\nName: readme.txt\n...\nAttributes:\nType: $DATA (128-128-2)   Name: $Data   Resident   size: 31</code></pre>\n<p>Note the <code>Not Allocated File</code> status — the file is deleted\nbut the MFT entry and its content remain recoverable. Now recover\nit:</p>\n<pre class=\"bash\"><code>icat -o 2048 exhibit-a.dd 75</code></pre>\n<p><strong>Expected output:</strong></p>\n<pre><code>archive is ready, key is safe</code></pre>\n<p>Record what the file contains. Does it suggest anything about the\nuser’s activity or intent?</p>\n<hr />"
+  },
+  {
+    "title": "Task 6 — Extension Mismatch",
+    "content": "<p>One allocated file has an extension that does not match its actual\nformat. Identify it from the <code>fls</code> listing, note its inode,\nand inspect its first bytes:</p>\n<pre class=\"bash\"><code>icat -o 2048 exhibit-a.dd &lt;inode&gt; | xxd | head -4</code></pre>\n<p><strong>Expected output for the suspicious file:</strong></p>\n<pre><code>00000000: 50 4b 03 04 14 00 06 00 08 00 00 00 21 00 a1 b2  PK..........!...\n00000010: d7 35 1b 00 00 00 17 00 00 00 0b 00 08 00 5f 72  .5............_r\n00000020: 65 6c 73 2f 74 68 65 6d 65 2f 74 68 65 6d 65 31  els/theme/theme1\n00000030: 2e 78 6d 6c 9c 54 cd 6e db 30 10 be 17 f8 0e 40  .xml.T.n.0.....@</code></pre>\n<p>The first few bytes are the file’s <em>magic bytes</em> — a format\nsignature independent of the filename. Common signatures:</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Magic bytes</th>\n<th>Format</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td><code>25 50 44 46</code></td>\n<td>PDF (<code>%PDF</code>)</td>\n</tr>\n<tr class=\"even\">\n<td><code>50 4b 03 04</code></td>\n<td>ZIP (and ZIP-based formats: DOCX, XLSX, etc.)</td>\n</tr>\n<tr class=\"odd\">\n<td><code>ff d8 ff e0</code></td>\n<td>JPEG (JFIF; fourth byte may vary)</td>\n</tr>\n<tr class=\"even\">\n<td><code>89 50 4e 47</code></td>\n<td>PNG</td>\n</tr>\n<tr class=\"odd\">\n<td><code>4d 5a</code></td>\n<td>Windows PE executable</td>\n</tr>\n</tbody>\n</table>\n<p>Record the filename, inode, the actual magic bytes, and the true\nformat they indicate. What does the mismatch suggest?</p>\n<hr />"
+  },
+  {
+    "title": "Task 7 — Timestamp Anomaly",
+    "content": "<p>Examine the metadata for <code>meeting_notes.docx</code>:</p>\n<pre class=\"bash\"><code>istat -o 2048 exhibit-a.dd &lt;inode&gt;</code></pre>\n<p>NTFS maintains four timestamps per file in the\n<code>$STANDARD_INFORMATION</code> attribute:</p>\n<table>\n<thead>\n<tr class=\"header\">\n<th>Field</th>\n<th>Abbreviation</th>\n<th>Meaning</th>\n</tr>\n</thead>\n<tbody>\n<tr class=\"odd\">\n<td>File Modified</td>\n<td><code>M</code></td>\n<td>When file content was last written</td>\n</tr>\n<tr class=\"even\">\n<td>Accessed</td>\n<td><code>A</code></td>\n<td>When the file was last read</td>\n</tr>\n<tr class=\"odd\">\n<td>MFT Modified</td>\n<td><code>C</code></td>\n<td>When the MFT entry itself was last changed</td>\n</tr>\n<tr class=\"even\">\n<td>Created</td>\n<td><code>B</code></td>\n<td>When the MFT entry was first created</td>\n</tr>\n</tbody>\n</table>\n<p>These are commonly referred to as MACB timestamps.</p>\n<p><strong>Expected output (abridged):</strong></p>\n<pre><code>$STANDARD_INFORMATION Attribute Values:\n...\nCreated:        2026-03-16 10:10:49.000000000 (UTC)\nFile Modified:  2026-03-05 16:42:00.000000000 (UTC)\nMFT Modified:   2026-03-16 10:10:49.000000000 (UTC)\nAccessed:       2026-03-16 10:10:49.000000000 (UTC)</code></pre>\n<p>Examine all four. Is there a relationship between any two that should\nbe impossible under normal filesystem operation? Record all four\ntimestamps and describe the anomaly precisely.</p>\n<hr />"
+  },
+  {
+    "title": "Task 8 — Block-Level Examination",
+    "content": "<p>The filesystem tells us which blocks a file <em>claims</em> to\noccupy. The block layer shows us what those blocks actually contain —\nand what neighboring blocks contain, regardless of what the filesystem\nsays.</p>\n<p>Pick any small allocated file from Task 3. Find its inode, then run\n<code>istat</code> to see its data run:</p>\n<pre class=\"bash\"><code>istat -o 2048 exhibit-a.dd &lt;inode&gt;</code></pre>\n<p>Near the end of the output you will see the allocated clusters.\nExample:</p>\n<pre><code>Attributes:\nType: $DATA (128-128-1)   Name: $Data   Non-Resident   size: 3502   init_size: 3502\n\nData run:\n884 @ 4408</code></pre>\n<p>This means the file occupies 884 sectors starting at\npartition-relative sector 4408, belonging to cluster 4408 / 8 = 551.</p>\n<p>Convert the first cluster address to a partition-relative sector (for\nthis image, 8 sectors per cluster):</p>\n<p><span class=\"math display\">sector = cluster × 8</span></p>\n<p>Check the allocation status of that sector:</p>\n<pre class=\"bash\"><code>blkstat -o 2048 exhibit-a.dd &lt;sector&gt;</code></pre>\n<p><strong>Expected output:</strong></p>\n<pre><code>Block: 4408\nAllocated\nInode: 42</code></pre>\n<p><code>blkstat</code> confirms the block is allocated and identifies\nits owning inode. Now read the raw block contents:</p>\n<pre class=\"bash\"><code>blkcat -o 2048 exhibit-a.dd &lt;sector&gt; | xxd</code></pre>\n<p>You should see the file’s content at the start. Look at the final\nlines of the output. Is the block completely filled, or are there bytes\nafter the file content ends?</p>\n<p><strong>Example — end of block showing file slack:</strong></p>\n<pre><code>00000da0: 69 6e 67 20 74 65 61 6d 20 69 6e 74 6f 0a 00 00  ing team into...\n00000db0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................\n00000dc0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................\n  ...\n00000ff0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</code></pre>\n<p>The space between the end of the file’s data and the end of its last\nallocated block is called <em>file slack</em>. Note what you observe\nthere.</p>\n<p>Compute the expected slack for your chosen file:</p>\n<p><span class=\"math display\">slack (bytes) = cluster size − (file\nsize mod  cluster size)</span></p>\n<p>If the file size is an exact multiple of the cluster size, slack is\nzero. Otherwise the formula gives the number of unused bytes at the end\nof the last allocated cluster. Does your calculation match what you see\nin the <code>xxd</code> output?</p>\n<hr />"
+  },
+  {
+    "title": "Task 9 — Leading Slack: Survey",
+    "content": "<p>Return to the <code>mmls</code> output from Task 1. The unallocated\nregion occupies sectors 1 through 2047 — the gap that precedes the NTFS\npartition and has no filesystem assigned to it.</p>\n<p>TSK tools address blocks relative to a filesystem when given\n<code>-o</code>. To inspect raw disk sectors directly — outside any\nfilesystem — use <code>dd</code>.</p>\n<p>Inspect the first sector of this region:</p>\n<pre class=\"bash\"><code>dd if=exhibit-a.dd bs=512 skip=1 count=1 | xxd</code></pre>\n<p><strong>Expected output (first two and last line):</strong></p>\n<pre><code>00000000: eb 3c 90 6d 6b 66 73 2e 66 61 74 00 02 01 06 00  .&lt;.mkfs.fat.....\n00000010: 02 00 00 f8 03 00 3f 00 ff 00 01 00 00 00 00 00  ......?.........\n  ...\n000001f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 55 aa  ..............U.</code></pre>\n<p>Look at the first 16 bytes and the final two bytes of the output.\nNote the printable string at bytes 3–10 and the two-byte value at bytes\n510–511. Do you recognize either?</p>\n<p>Now get a broader view by looking for printable content across the\nentire region:</p>\n<pre class=\"bash\"><code>dd if=exhibit-a.dd bs=512 skip=1 count=2046 | strings | head -40</code></pre>\n<p><strong>Expected output (representative):</strong></p>\n<pre><code>mkfs.fat\n;This program cannot be run in DOS mode.\nhashcat\njohn\nnmap\nwireshark\n/etc/shadow\nold.speeding.turtle\ncold.amber.river\nquiet.stone.bridge\nfading.copper.lamp\nsilent.iron.gate\nhollow.birch.crossing\nburning.slate.window\nPK\nproject_alpha.txt\nemployee_list.csv\ncredentials.txt</code></pre>\n<p>Record what categories of content appear. Is the region uniform, or\nare there distinct sections with different character?</p>\n<hr />"
+  },
+  {
+    "title": "Task 10 — Leading Slack: Last Block",
+    "content": "<p>The last sector before the NTFS partition is sector 2047. Extract\nit:</p>\n<pre class=\"bash\"><code>dd if=exhibit-a.dd bs=512 skip=2047 count=1 | xxd</code></pre>\n<p><strong>Expected output:</strong></p>\n<pre><code>00000000: 64 75 73 74 79 2e 6c 61 6e 74 65 72 6e 2e 66 61  dusty.lantern.fa\n00000010: 64 69 6e 67 2e 77 69 6e 74 65 72 2e 63 6f 70 70  ding.winter.copp\n00000020: 65 72 2e 68 6f 6c 6c 6f 77 00 00 00 00 00 00 00  er.hollow.......\n  ...\n000001f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</code></pre>\n<p>Consider:</p>\n<ul>\n<li>What format is the content?</li>\n<li>Does it relate to anything else you have found on this image?</li>\n<li>This sector lies outside any filesystem and outside any file. How do\nyou think it came to contain this content?</li>\n</ul>\n<p>Do not attempt to act on what you find here yet. Note it and move on\n— this is a thread the homework will ask you to pull.</p>\n<hr />"
+  },
+  {
+    "title": "Task 11 — Findings Summary",
+    "content": "<p>Before leaving the lab, compile your notes into a brief findings\nsummary covering:</p>\n<ol type=\"1\">\n<li>Image hash (from Task 0)</li>\n<li>Partition layout: what is present, what is unallocated</li>\n<li>File timeline: key dates, any clustering or anomalies observed</li>\n<li>Every forensically significant artifact found on the NTFS surface,\nwith a finding and interpretation for each</li>\n<li>Block-level observation: what the file slack examination showed</li>\n<li>What you found in the leading slack (Tasks 9–10) and what questions\nit raises</li>\n<li>One sentence describing what the disk, taken as a whole, appears to\nrepresent</li>\n</ol>\n<p>This summary is the starting point for the homework assignment, which\ncontinues the investigation below the filesystem layer.</p>"
+  }
+];
+</script>
+
+<!-- ── Navigation Engine ───────────────────────────────────────── -->
+<script>
+(function () {
+  const steps  = STEPS;
+  const TOTAL  = steps.length;
+  let current  = 0;
+
+  const stepView    = document.getElementById('step-view');
+  const stepList    = document.getElementById('step-list');
+  const btnPrev     = document.getElementById('btn-prev');
+  const btnNext     = document.getElementById('btn-next');
+  const stepCounter = document.getElementById('step-counter');
+  const topbarMeta  = document.getElementById('topbar-meta');
+
+  // Build sidebar
+  steps.forEach((step, i) => {
+    const li = document.createElement('li');
+    li.innerHTML =
+      `<span class="step-num">${i + 1}</span>` +
+      `<span class="step-lbl">${step.title}</span>`;
+    li.addEventListener('click', () => go(i));
+    stepList.appendChild(li);
+  });
+
+  function go(idx) {
+    if (idx < 0 || idx >= TOTAL) return;
+    current = idx;
+
+    stepView.innerHTML =
+      `<div class="step-hdr">` +
+        `<div class="step-badge">${idx + 1}</div>` +
+        `<h1>${steps[idx].title}</h1>` +
+      `</div>` +
+      steps[idx].content;
+
+    // Re-trigger animation
+    stepView.style.animation = 'none';
+    void stepView.offsetWidth;
+    stepView.style.animation = '';
+
+    window.scrollTo(0, 0);
+
+    document.querySelectorAll('#step-list li').forEach((li, i) => {
+      li.classList.toggle('active', i === idx);
+    });
+
+    btnPrev.classList.toggle('hidden', idx === 0);
+    btnNext.textContent = idx === TOTAL - 1 ? 'Done ✓' : 'Next →';
+
+    stepCounter.textContent = `${idx + 1} of ${TOTAL}`;
+    topbarMeta.textContent  = `Step ${idx + 1} / ${TOTAL}`;
+  }
+
+  btnPrev.addEventListener('click', () => go(current - 1));
+  btnNext.addEventListener('click', () => { if (current < TOTAL - 1) go(current + 1); });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(current - 1);
+  });
+
+  go(0);
+})();
+</script>
+</body>
+</html>

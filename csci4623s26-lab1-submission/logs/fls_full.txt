@@ -1,0 +1,40 @@
+r/r 4-128-1:	$AttrDef
+r/r 8-128-2:	$BadClus
+r/r 8-128-1:	$BadClus:$Bad
+r/r 6-128-1:	$Bitmap
+r/r 7-128-1:	$Boot
+d/d 11-144-2:	$Extend
+r/r 25-144-2:	$Extend/$ObjId:$O
+r/r 24-144-3:	$Extend/$Quota:$O
+r/r 24-144-2:	$Extend/$Quota:$Q
+r/r 26-144-2:	$Extend/$Reparse:$R
+r/r 2-128-1:	$LogFile
+r/r 0-128-1:	$MFT
+r/r 1-128-1:	$MFTMirr
+r/r 9-128-2:	$Secure:$SDS
+r/r 9-144-3:	$Secure:$SDH
+r/r 9-144-4:	$Secure:$SII
+r/r 10-128-1:	$UpCase
+r/r 10-128-2:	$UpCase:$Info
+r/r 3-128-3:	$Volume
+d/d 64-144-2:	Documents
+r/r 68-128-2:	Documents/Q3_review.docx
+r/r 67-128-2:	Documents/team_contacts.xlsx
+d/d 65-144-2:	Downloads
+r/r 69-128-2:	Downloads/putty.exe
+r/r 70-128-2:	Downloads/WinSCP-5.21.8-Setup.exe
+r/r 74-128-2:	meeting_notes.docx
+d/d 66-144-2:	Pictures
+r/r 72-128-2:	Pictures/office_floorplan.png
+r/r 71-128-2:	Pictures/whiteboard_20240912.jpg
+r/r 73-128-2:	quarterly_report.pdf
+-/r * 75-128-2:	readme.txt
+V/V 76:	$OrphanFiles
+-/r * 16:	$OrphanFiles/OrphanFile-16
+-/r * 17:	$OrphanFiles/OrphanFile-17
+-/r * 18:	$OrphanFiles/OrphanFile-18
+-/r * 19:	$OrphanFiles/OrphanFile-19
+-/r * 20:	$OrphanFiles/OrphanFile-20
+-/r * 21:	$OrphanFiles/OrphanFile-21
+-/r * 22:	$OrphanFiles/OrphanFile-22
+-/r * 23:	$OrphanFiles/OrphanFile-23

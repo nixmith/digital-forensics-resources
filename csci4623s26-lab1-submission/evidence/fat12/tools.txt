@@ -1,0 +1,11 @@
+# installed / available
+hashcat         6.2.6
+john            1.9.0-jumbo-1
+nmap            7.94
+wireshark       4.0.8
+tcpdump         4.99.4
+aircrack-ng     1.7
+ophcrack        3.8.0
+mimikatz        2.2.0
+bloodhound      4.3.1
+crackmapexec    5.4.0
