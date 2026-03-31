@@ -1,0 +1,6 @@
+# BANNER FILE NOT PROVIDED (-b option)
+# BULK_EXTRACTOR-Version: 2.1.1
+# Feature-Recorder: exif
+# Filename: exhibit-a.dd
+# Feature-File-Version: 1.1
+51709717-ZIP-0	3df63a0ba12c43ab4b41c08ab1bf77c03d938770	<exif><ifd0.tiff.XResolution>72/1</ifd0.tiff.XResolution><ifd0.tiff.YResolution>72/1</ifd0.tiff.YResolution><ifd0.tiff.ResolutionUnit>2</ifd0.tiff.ResolutionUnit><ifd0.exif.PixelXDimension>395</ifd0.exif.PixelXDimension><ifd0.exif.PixelYDimension>512</ifd0.exif.PixelYDimension></exif>

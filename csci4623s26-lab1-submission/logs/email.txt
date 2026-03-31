@@ -1,0 +1,36 @@
+# BANNER FILE NOT PROVIDED (-b option)
+# BULK_EXTRACTOR-Version: 2.1.1
+# Feature-Recorder: email
+# Filename: exhibit-a.dd
+# Feature-File-Version: 1.1
+137076832	SSHCONNECTION@putty.projects.tartarus.org	\320\345\002@\001\000\000\000\000\000\000\000\000\000\000\000SSHCONNECTION@putty.projects.tartarus.org-2.0-\000\000P\276\005@\001\000\000\000\220
+137158604	auth-agent@openssh.com	om\000config-decom\000auth-agent@openssh.com\000auth-agent-req@
+137158627	auth-agent-req@openssh.com	ent@openssh.com\000auth-agent-req@openssh.com\000hmac-sha1-96-et
+137158654	hmac-sha1-96-etm@openssh.com	req@openssh.com\000hmac-sha1-96-etm@openssh.com\000hmac-sha2-256-e
+137158683	hmac-sha2-256-etm@openssh.com	etm@openssh.com\000hmac-sha2-256-etm@openssh.com\000hmac-md5-etm@op
+137158713	hmac-md5-etm@openssh.com	etm@openssh.com\000hmac-md5-etm@openssh.com\000hmac-sha2-512-e
+137158738	hmac-sha2-512-etm@openssh.com	etm@openssh.com\000hmac-sha2-512-etm@openssh.com\000hmac-sha1-etm@o
+137158768	hmac-sha1-etm@openssh.com	etm@openssh.com\000hmac-sha1-etm@openssh.com\000aes128-gcm@open
+137158794	aes128-gcm@openssh.com	etm@openssh.com\000aes128-gcm@openssh.com\000aes256-gcm@open
+137158817	aes256-gcm@openssh.com	gcm@openssh.com\000aes256-gcm@openssh.com\000zlib@openssh.co
+137158840	zlib@openssh.com	gcm@openssh.com\000zlib@openssh.com\000chacha20-poly13
+137158857	chacha20-poly1305@openssh.com	lib@openssh.com\000chacha20-poly1305@openssh.com\000sntrup761x25519
+137158887	sntrup761x25519-sha512@openssh.com	305@openssh.com\000sntrup761x25519-sha512@openssh.com\000ssh-dss-cert-v0
+137158922	ssh-dss-cert-v01@openssh.com	512@openssh.com\000ssh-dss-cert-v01@openssh.com\000ssh-rsa-cert-v0
+137158951	ssh-rsa-cert-v01@openssh.com	v01@openssh.com\000ssh-rsa-cert-v01@openssh.com\000ssh-ed25519-cer
+137158980	ssh-ed25519-cert-v01@openssh.com	v01@openssh.com\000ssh-ed25519-cert-v01@openssh.com\000ecdsa-sha2-nist
+137159013	ecdsa-sha2-nistp256-cert-v01@openssh.com	v01@openssh.com\000ecdsa-sha2-nistp256-cert-v01@openssh.com\000rsa-sha2-256-ce
+137159054	rsa-sha2-256-cert-v01@openssh.com	v01@openssh.com\000rsa-sha2-256-cert-v01@openssh.com\000ecdsa-sha2-nist
+137159088	ecdsa-sha2-nistp384-cert-v01@openssh.com	v01@openssh.com\000ecdsa-sha2-nistp384-cert-v01@openssh.com\000rsa-sha2-512-ce
+137159129	rsa-sha2-512-cert-v01@openssh.com	v01@openssh.com\000rsa-sha2-512-cert-v01@openssh.com\000ecdsa-sha2-nist
+137159163	ecdsa-sha2-nistp521-cert-v01@openssh.com	v01@openssh.com\000ecdsa-sha2-nistp521-cert-v01@openssh.com\000kex-strict-s-v0
+137159204	kex-strict-s-v00@openssh.com	v01@openssh.com\000kex-strict-s-v00@openssh.com\000kex-strict-c-v0
+137159233	kex-strict-c-v00@openssh.com	v00@openssh.com\000kex-strict-c-v00@openssh.com\000des-cbc@ssh.com
+137159262	des-cbc@ssh.com	v00@openssh.com\000des-cbc@ssh.com\000demo-server.exa
+137162874	winadj@putty.projects.tartarus.org	trl_DragListMsg\000winadj@putty.projects.tartarus.org\000simple@putty.pr
+137162909	simple@putty.projects.tartarus.org	ts.tartarus.org\000simple@putty.projects.tartarus.org\000curve25519-sha2
+137162944	curve25519-sha256@libssh.org	ts.tartarus.org\000curve25519-sha256@libssh.org\000-sshrawlog\000-ses
+137166830	rijndael-cbc@lysator.liu.se	se\000config-erase\000rijndael-cbc@lysator.liu.se\000Sent public key
+137202279	putty@projects.tartarus.org	Please contact <putty@projects.tartarus.org> and pass on th
+137205920	SSHCONNECTION@putty.projects.tartarus.org	-with-mic...\000x-\000SSHCONNECTION@putty.projects.tartarus.org-\000PuTTY-User-Key
+137205989	SSHCONNECTION@putty.projects.tartarus.org	-Key-File-\000SSH-\000SSHCONNECTION@putty.projects.tartarus.org-2.0-\000----- Sess

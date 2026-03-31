@@ -1,0 +1,253 @@
+# BANNER FILE NOT PROVIDED (-b option)
+# BULK_EXTRACTOR-Version: 2.1.1
+# Feature-Recorder: domain
+# Filename: exhibit-a.dd
+# Feature-File-Version: 1.1
+24874	192.168.1.0	 22,80,443,3389 192.168.1.0/24\012scp -i ~/.ss
+24929	203.0.113.47	rets.zip deploy@203.0.113.47:/var/drop/\012shre
+34906112-ZIP-26	schemas.openxmlformats.org	s xmlns="http://schemas.openxmlformats.org/officeDocument/
+34906288-ZIP-36	schemas.openxmlformats.org	mlns:cp="http://schemas.openxmlformats.org/package/2006/me
+34906288-ZIP-131	purl.org	mlns:dc="http://purl.org/dc/elements/1.1
+34906288-ZIP-218	purl.org	dcterms="http://purl.org/dc/terms/" xmln
+34906288-ZIP-256	www.w3.org	lns:xsi="http://www.w3.org/2001/XMLSchema-
+34906288-ZIP-402	purl.org	dcterms="http://purl.org/dc/terms/" xmln
+34906288-ZIP-440	www.w3.org	lns:xsi="http://www.w3.org/2001/XMLSchema-
+34908180-ZIP-25	schemas.openxmlformats.org	t xmlns="http://schemas.openxmlformats.org/spreadsheetml/2
+34908987-ZIP-26	schemas.openxmlformats.org	t xmlns="http://schemas.openxmlformats.org/spreadsheetml/2
+34909641-ZIP-29	schemas.openxmlformats.org	s xmlns="http://schemas.openxmlformats.org/package/2006/re
+34909641-ZIP-111	schemas.openxmlformats.org	ip Type="http://schemas.openxmlformats.org/officeDocument/
+34909641-ZIP-251	schemas.openxmlformats.org	ip Type="http://schemas.openxmlformats.org/package/2006/re
+34909641-ZIP-396	schemas.openxmlformats.org	ip Type="http://schemas.openxmlformats.org/officeDocument/
+34909874-ZIP-24	schemas.openxmlformats.org	k xmlns="http://schemas.openxmlformats.org/spreadsheetml/2
+34909874-ZIP-351	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+34910228-ZIP-29	schemas.openxmlformats.org	s xmlns="http://schemas.openxmlformats.org/package/2006/re
+34910228-ZIP-111	schemas.openxmlformats.org	ip Type="http://schemas.openxmlformats.org/officeDocument/
+34910228-ZIP-256	schemas.openxmlformats.org	ip Type="http://schemas.openxmlformats.org/officeDocument/
+34910228-ZIP-383	schemas.openxmlformats.org	ip Type="http://schemas.openxmlformats.org/officeDocument/
+34910457-ZIP-21	schemas.openxmlformats.org	s xmlns="http://schemas.openxmlformats.org/package/2006/co
+34906579-ZIP-47	schemas.openxmlformats.org	xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/
+51675136-ZIP-77	schemas.openxmlformats.org	s xmlns="http://schemas.openxmlformats.org/package/2006/co
+51675590-ZIP-85	schemas.openxmlformats.org	s xmlns="http://schemas.openxmlformats.org/package/2006/re
+51675590-ZIP-177	schemas.openxmlformats.org	3" Type="http://schemas.openxmlformats.org/package/2006/re
+51675590-ZIP-322	schemas.openxmlformats.org	4" Type="http://schemas.openxmlformats.org/officeDocument/
+51675590-ZIP-468	schemas.openxmlformats.org	1" Type="http://schemas.openxmlformats.org/officeDocument/
+51675590-ZIP-610	schemas.openxmlformats.org	2" Type="http://schemas.openxmlformats.org/package/2006/re
+51675879-ZIP-92	schemas.openxmlformats.org	mlns:cp="http://schemas.openxmlformats.org/package/2006/me
+51675879-ZIP-175	purl.org	mlns:dc="http://purl.org/dc/elements/1.1
+51675879-ZIP-224	purl.org	dcterms="http://purl.org/dc/terms/" xmln
+51675879-ZIP-267	purl.org	cmitype="http://purl.org/dc/dcmitype/" x
+51675879-ZIP-308	www.w3.org	lns:xsi="http://www.w3.org/2001/XMLSchema-
+51676287-ZIP-82	schemas.openxmlformats.org	s xmlns="http://schemas.openxmlformats.org/officeDocument/
+51676287-ZIP-167	schemas.openxmlformats.org	mlns:vt="http://schemas.openxmlformats.org/officeDocument/
+51676824-ZIP-86	schemas.microsoft.com	lns:wpc="http://schemas.microsoft.com/office/word/201
+51676824-ZIP-164	schemas.microsoft.com	mlns:mo="http://schemas.microsoft.com/office/mac/offi
+51676824-ZIP-232	schemas.openxmlformats.org	mlns:mc="http://schemas.openxmlformats.org/markup-compatib
+51676824-ZIP-397	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+51676824-ZIP-475	schemas.openxmlformats.org	xmlns:m="http://schemas.openxmlformats.org/officeDocument/
+51676824-ZIP-587	schemas.microsoft.com	ns:wp14="http://schemas.microsoft.com/office/word/201
+51676824-ZIP-666	schemas.openxmlformats.org	mlns:wp="http://schemas.openxmlformats.org/drawingml/2006/
+51676824-ZIP-797	schemas.openxmlformats.org	xmlns:w="http://schemas.openxmlformats.org/wordprocessingm
+51676824-ZIP-870	schemas.microsoft.com	lns:w14="http://schemas.microsoft.com/office/word/201
+51676824-ZIP-935	schemas.microsoft.com	lns:wpg="http://schemas.microsoft.com/office/word/201
+51676824-ZIP-1013	schemas.microsoft.com	lns:wpi="http://schemas.microsoft.com/office/word/201
+51676824-ZIP-1089	schemas.microsoft.com	lns:wne="http://schemas.microsoft.com/office/word/200
+51676824-ZIP-1154	schemas.microsoft.com	lns:wps="http://schemas.microsoft.com/office/word/201
+51678057-ZIP-85	schemas.openxmlformats.org	s xmlns="http://schemas.openxmlformats.org/package/2006/re
+51678057-ZIP-177	schemas.openxmlformats.org	3" Type="http://schemas.openxmlformats.org/officeDocument/
+51678057-ZIP-304	schemas.microsoft.com	4" Type="http://schemas.microsoft.com/office/2007/rel
+51678057-ZIP-440	schemas.openxmlformats.org	5" Type="http://schemas.openxmlformats.org/officeDocument/
+51678057-ZIP-571	schemas.openxmlformats.org	6" Type="http://schemas.openxmlformats.org/officeDocument/
+51678057-ZIP-708	schemas.openxmlformats.org	7" Type="http://schemas.openxmlformats.org/officeDocument/
+51678057-ZIP-841	schemas.openxmlformats.org	8" Type="http://schemas.openxmlformats.org/officeDocument/
+51678057-ZIP-973	schemas.openxmlformats.org	1" Type="http://schemas.openxmlformats.org/officeDocument/
+51678057-ZIP-1115	schemas.openxmlformats.org	2" Type="http://schemas.openxmlformats.org/officeDocument/
+51704294-ZIP-85	schemas.openxmlformats.org	mlns:mc="http://schemas.openxmlformats.org/markup-compatib
+51704294-ZIP-205	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+51704294-ZIP-283	schemas.openxmlformats.org	xmlns:m="http://schemas.openxmlformats.org/officeDocument/
+51704294-ZIP-442	schemas.openxmlformats.org	xmlns:w="http://schemas.openxmlformats.org/wordprocessingm
+51704294-ZIP-515	schemas.microsoft.com	lns:w14="http://schemas.microsoft.com/office/word/201
+51704294-ZIP-579	schemas.openxmlformats.org	mlns:sl="http://schemas.openxmlformats.org/schemaLibrary/2
+51704294-ZIP-915	schemas.microsoft.com	" w:uri="http://schemas.microsoft.com/office/word" w:
+51704294-ZIP-1045	schemas.microsoft.com	" w:uri="http://schemas.microsoft.com/office/word" w:
+51704294-ZIP-1154	schemas.microsoft.com	" w:uri="http://schemas.microsoft.com/office/word" w:
+51704294-ZIP-1263	schemas.microsoft.com	" w:uri="http://schemas.microsoft.com/office/word" w:
+51705300-ZIP-88	schemas.openxmlformats.org	mlns:mc="http://schemas.openxmlformats.org/markup-compatib
+51705300-ZIP-158	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+51705300-ZIP-236	schemas.openxmlformats.org	xmlns:w="http://schemas.openxmlformats.org/wordprocessingm
+51705300-ZIP-309	schemas.microsoft.com	lns:w14="http://schemas.microsoft.com/office/word/201
+51705606-ZIP-82	schemas.openxmlformats.org	mlns:mc="http://schemas.openxmlformats.org/markup-compatib
+51705606-ZIP-152	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+51705606-ZIP-230	schemas.openxmlformats.org	xmlns:w="http://schemas.openxmlformats.org/wordprocessingm
+51705606-ZIP-303	schemas.microsoft.com	lns:w14="http://schemas.microsoft.com/office/word/201
+51708050-ZIP-83	schemas.openxmlformats.org	xmlns:b="http://schemas.openxmlformats.org/officeDocument/
+51708050-ZIP-158	schemas.openxmlformats.org	" xmlns="http://schemas.openxmlformats.org/officeDocument/
+51708266-ZIP-85	schemas.openxmlformats.org	s xmlns="http://schemas.openxmlformats.org/package/2006/re
+51708266-ZIP-177	schemas.openxmlformats.org	1" Type="http://schemas.openxmlformats.org/officeDocument/
+51708515-ZIP-91	schemas.openxmlformats.org	mlns:ds="http://schemas.openxmlformats.org/officeDocument/
+51708515-ZIP-252	schemas.openxmlformats.org	 ds:uri="http://schemas.openxmlformats.org/officeDocument/
+51708794-ZIP-87	schemas.microsoft.com	lns:wpc="http://schemas.microsoft.com/office/word/201
+51708794-ZIP-165	schemas.microsoft.com	mlns:mo="http://schemas.microsoft.com/office/mac/offi
+51708794-ZIP-233	schemas.openxmlformats.org	mlns:mc="http://schemas.openxmlformats.org/markup-compatib
+51708794-ZIP-398	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+51708794-ZIP-476	schemas.openxmlformats.org	xmlns:m="http://schemas.openxmlformats.org/officeDocument/
+51708794-ZIP-588	schemas.microsoft.com	ns:wp14="http://schemas.microsoft.com/office/word/201
+51708794-ZIP-667	schemas.openxmlformats.org	mlns:wp="http://schemas.openxmlformats.org/drawingml/2006/
+51708794-ZIP-798	schemas.openxmlformats.org	xmlns:w="http://schemas.openxmlformats.org/wordprocessingm
+51708794-ZIP-871	schemas.microsoft.com	lns:w14="http://schemas.microsoft.com/office/word/201
+51708794-ZIP-936	schemas.microsoft.com	lns:wpg="http://schemas.microsoft.com/office/word/201
+51708794-ZIP-1014	schemas.microsoft.com	lns:wpi="http://schemas.microsoft.com/office/word/201
+51708794-ZIP-1090	schemas.microsoft.com	lns:wne="http://schemas.microsoft.com/office/word/200
+51708794-ZIP-1155	schemas.microsoft.com	lns:wps="http://schemas.microsoft.com/office/word/201
+51678421-ZIP-83	schemas.openxmlformats.org	mlns:mc="http://schemas.openxmlformats.org/markup-compatib
+51678421-ZIP-153	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+51678421-ZIP-231	schemas.openxmlformats.org	xmlns:w="http://schemas.openxmlformats.org/wordprocessingm
+51678421-ZIP-304	schemas.microsoft.com	lns:w14="http://schemas.microsoft.com/office/word/201
+51690613-ZIP-84	schemas.microsoft.com	lns:wpc="http://schemas.microsoft.com/office/word/201
+51690613-ZIP-162	schemas.microsoft.com	mlns:mo="http://schemas.microsoft.com/office/mac/offi
+51690613-ZIP-230	schemas.openxmlformats.org	mlns:mc="http://schemas.openxmlformats.org/markup-compatib
+51690613-ZIP-395	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+51690613-ZIP-473	schemas.openxmlformats.org	xmlns:m="http://schemas.openxmlformats.org/officeDocument/
+51690613-ZIP-585	schemas.microsoft.com	ns:wp14="http://schemas.microsoft.com/office/word/201
+51690613-ZIP-664	schemas.openxmlformats.org	mlns:wp="http://schemas.openxmlformats.org/drawingml/2006/
+51690613-ZIP-795	schemas.openxmlformats.org	xmlns:w="http://schemas.openxmlformats.org/wordprocessingm
+51690613-ZIP-868	schemas.microsoft.com	lns:w14="http://schemas.microsoft.com/office/word/201
+51690613-ZIP-933	schemas.microsoft.com	lns:wpg="http://schemas.microsoft.com/office/word/201
+51690613-ZIP-1011	schemas.microsoft.com	lns:wpi="http://schemas.microsoft.com/office/word/201
+51690613-ZIP-1087	schemas.microsoft.com	lns:wne="http://schemas.microsoft.com/office/word/200
+51690613-ZIP-1152	schemas.microsoft.com	lns:wps="http://schemas.microsoft.com/office/word/201
+51706265-ZIP-81	schemas.openxmlformats.org	xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/
+137076846	putty.projects.tartarus.org	\000\000SSHCONNECTION@putty.projects.tartarus.org-2.0-\000\000P\276\005@\001\000\000\000\220
+137158615	openssh.com	ecom\000auth-agent@openssh.com\000auth-agent-req@
+137158642	openssh.com	\000auth-agent-req@openssh.com\000hmac-sha1-96-et
+137158671	openssh.com	mac-sha1-96-etm@openssh.com\000hmac-sha2-256-e
+137158701	openssh.com	ac-sha2-256-etm@openssh.com\000hmac-md5-etm@op
+137158726	openssh.com	om\000hmac-md5-etm@openssh.com\000hmac-sha2-512-e
+137158756	openssh.com	ac-sha2-512-etm@openssh.com\000hmac-sha1-etm@o
+137158782	openssh.com	m\000hmac-sha1-etm@openssh.com\000aes128-gcm@open
+137158805	openssh.com	.com\000aes128-gcm@openssh.com\000aes256-gcm@open
+137158828	openssh.com	.com\000aes256-gcm@openssh.com\000zlib@openssh.co
+137158845	openssh.com	penssh.com\000zlib@openssh.com\000chacha20-poly13
+137158875	openssh.com	acha20-poly1305@openssh.com\000sntrup761x25519
+137158910	openssh.com	61x25519-sha512@openssh.com\000ssh-dss-cert-v0
+137158939	openssh.com	sh-dss-cert-v01@openssh.com\000ssh-rsa-cert-v0
+137158968	openssh.com	sh-rsa-cert-v01@openssh.com\000ssh-ed25519-cer
+137159001	openssh.com	d25519-cert-v01@openssh.com\000ecdsa-sha2-nist
+137159042	openssh.com	stp256-cert-v01@openssh.com\000rsa-sha2-256-ce
+137159076	openssh.com	a2-256-cert-v01@openssh.com\000ecdsa-sha2-nist
+137159117	openssh.com	stp384-cert-v01@openssh.com\000rsa-sha2-512-ce
+137159151	openssh.com	a2-512-cert-v01@openssh.com\000ecdsa-sha2-nist
+137159192	openssh.com	stp521-cert-v01@openssh.com\000kex-strict-s-v0
+137159221	openssh.com	ex-strict-s-v00@openssh.com\000kex-strict-c-v0
+137159250	openssh.com	ex-strict-c-v00@openssh.com\000des-cbc@ssh.com
+137159270	ssh.com	ssh.com\000des-cbc@ssh.com\000demo-server.exa
+137162881	putty.projects.tartarus.org	gListMsg\000winadj@putty.projects.tartarus.org\000simple@putty.pr
+137162916	putty.projects.tartarus.org	arus.org\000simple@putty.projects.tartarus.org\000curve25519-sha2
+137162962	libssh.org	rve25519-sha256@libssh.org\000-sshrawlog\000-ses
+137166843	lysator.liu.se	se\000rijndael-cbc@lysator.liu.se\000Sent public key
+137200399	www.chiark.greenend.org.uk	0,0,0,0\000https://www.chiark.greenend.org.uk/~sgtatham/putty
+137202285	projects.tartarus.org	 contact <putty@projects.tartarus.org> and pass on th
+137205934	putty.projects.tartarus.org	-\000SSHCONNECTION@putty.projects.tartarus.org-\000PuTTY-User-Key
+137206003	putty.projects.tartarus.org	-\000SSHCONNECTION@putty.projects.tartarus.org-2.0-\000----- Sess
+137709593	schemas.microsoft.com	  xmlns="http://schemas.microsoft.com/SMI/2005/Window
+137709721	schemas.microsoft.com	  xmlns="http://schemas.microsoft.com/SMI/2016/Window
+137719423	sectigo.com	\001\005\005\007\002\001\026\027https://sectigo.com/CPS0\010\006\006g\201\014\001\004\0010I
+137719474	crl.sectigo.com	@0>\240<\240:\2068http://crl.sectigo.com/SectigoPublicCo
+137719560	crt.sectigo.com	\006\001\005\005\0070\002\2068http://crt.sectigo.com/SectigoPublicCo
+137719630	ocsp.sectigo.com	\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137720908	crl.sectigo.com	B0@\240>\240<\206:http://crl.sectigo.com/SectigoPublicCo
+137720996	crt.sectigo.com	\006\001\005\005\0070\002\206:http://crt.sectigo.com/SectigoPublicCo
+137721068	ocsp.sectigo.com	\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137722638	crl.comodoca.com	:08\2406\2404\2062http://crl.comodoca.com/AAACertificateS
+137722718	ocsp.comodoca.com	\006\001\005\005\0070\001\206\030http://ocsp.comodoca.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137723714	crl.comodoca.com	r08\2406\2404\2062http://crl.comodoca.com/AAACertificateS
+137723772	crl.comodo.net	l06\2404\2402\2060http://crl.comodo.net/AAACertificateS
+137725157	crl.usertrust.com	G0E\240C\240A\206?http://crl.usertrust.com/USERTrustRSACer
+137725250	crt.usertrust.com	\006\001\005\005\0070\002\2063http://crt.usertrust.com/USERTrustRSAAdd
+137725315	ocsp.usertrust.com	\006\001\005\005\0070\001\206\031http://ocsp.usertrust.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137726905	sectigo.com	\001\005\005\007\002\001\026\027https://sectigo.com/CPS0\010\006\006g\201\014\001\004\0020D
+137726956	crl.sectigo.com	;09\2407\2405\2063http://crl.sectigo.com/SectigoRSATimeS
+137727037	crt.sectigo.com	\006\001\005\005\0070\002\2063http://crt.sectigo.com/SectigoRSATimeS
+137727102	ocsp.sectigo.com	\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137727978	www.chiark.greenend.org.uk	ient\2415\2003https://www.chiark.greenend.org.uk/~sgtatham/putty
+137730582	sectigo.com	\001\005\005\007\002\001\026\027https://sectigo.com/CPS0\010\006\006g\201\014\001\004\0010I
+137730633	crl.sectigo.com	@0>\240<\240:\2068http://crl.sectigo.com/SectigoPublicCo
+137730719	crt.sectigo.com	\006\001\005\005\0070\002\2068http://crt.sectigo.com/SectigoPublicCo
+137730789	ocsp.sectigo.com	\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137732067	crl.sectigo.com	B0@\240>\240<\206:http://crl.sectigo.com/SectigoPublicCo
+137732155	crt.sectigo.com	\006\001\005\005\0070\002\206:http://crt.sectigo.com/SectigoPublicCo
+137732227	ocsp.sectigo.com	\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137733797	crl.comodoca.com	:08\2406\2404\2062http://crl.comodoca.com/AAACertificateS
+137733877	ocsp.comodoca.com	\006\001\005\005\0070\001\206\030http://ocsp.comodoca.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137734873	crl.comodoca.com	r08\2406\2404\2062http://crl.comodoca.com/AAACertificateS
+137734931	crl.comodo.net	l06\2404\2402\2060http://crl.comodo.net/AAACertificateS
+137736316	crl.usertrust.com	G0E\240C\240A\206?http://crl.usertrust.com/USERTrustRSACer
+137736409	crt.usertrust.com	\006\001\005\005\0070\002\2063http://crt.usertrust.com/USERTrustRSAAdd
+137736474	ocsp.usertrust.com	\006\001\005\005\0070\001\206\031http://ocsp.usertrust.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137738064	sectigo.com	\001\005\005\007\002\001\026\027https://sectigo.com/CPS0\010\006\006g\201\014\001\004\0020D
+137738115	crl.sectigo.com	;09\2407\2405\2063http://crl.sectigo.com/SectigoRSATimeS
+137738196	crt.sectigo.com	\006\001\005\005\0070\002\2063http://crt.sectigo.com/SectigoRSATimeS
+137738261	ocsp.sectigo.com	\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137739153	www.chiark.greenend.org.uk	ient\2415\2003https://www.chiark.greenend.org.uk/~sgtatham/putty
+153693505	schemas.microsoft.com	e xmlns="http://schemas.microsoft.com/SMI/2005/Window
+164293910	ocsp.digicert.com0C	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0C\006\010+\006\001\005\005\0070\002\2067http
+164293948	cacerts.digicert.com	\006\001\005\005\0070\002\2067http://cacerts.digicert.com/DigiCertAssured
+164294022	crl3.digicert.com	<0:\2408\2406\2064http://crl3.digicert.com/DigiCertAssured
+164295357	ocsp.digicert.com0A	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0A\006\010+\006\001\005\005\0070\002\2065http
+164295395	cacerts.digicert.com	\006\001\005\005\0070\002\2065http://cacerts.digicert.com/DigiCertTrusted
+164295467	crl3.digicert.com	:08\2406\2404\2062http://crl3.digicert.com/DigiCertTrusted
+164297077	ocsp.digicert.com0A	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0A\006\010+\006\001\005\005\0070\002\2065http
+164297115	cacerts.digicert.com	\006\001\005\005\0070\002\2065http://cacerts.digicert.com/DigiCertTrusted
+164297187	crl3.digicert.com	:08\2406\2404\2062http://crl3.digicert.com/DigiCertTrusted
+164298779	crl3.digicert.com	Q0O\240M\240K\206Ihttp://crl3.digicert.com/DigiCertTrusted
+164298885	ocsp.digicert.com0X	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0X\006\010+\006\001\005\005\0070\002\206Lhttp
+164298923	cacerts.digicert.com	\006\001\005\005\0070\002\206Lhttp://cacerts.digicert.com/DigiCertTrusted
+164300591	crl3.digicert.com	\2520S\240Q\240O\206Mhttp://crl3.digicert.com/DigiCertTrusted
+164300676	crl4.digicert.com	l0S\240Q\240O\206Mhttp://crl4.digicert.com/DigiCertTrusted
+164300789	www.digicert.com	\006\001\005\005\007\002\001\026\033http://www.digicert.com/CPS0\201\224\006\010+\006\001\005\005\007\001
+164300849	ocsp.digicert.com	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0\134\006\010+\006\001\005\005\0070\002\206Pht
+164300887	cacerts.digicert.com	\006\001\005\005\0070\002\206Phttp://cacerts.digicert.com/DigiCertTrusted
+164301818	winscp.net	\000e\000r\241*\200(https://winscp.net/eng/docs/instal
+164304347	ocsp.digicert.com0A	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0A\006\010+\006\001\005\005\0070\002\2065http
+164304385	cacerts.digicert.com	\006\001\005\005\0070\002\2065http://cacerts.digicert.com/DigiCertTrusted
+164304457	crl3.digicert.com	:08\2406\2404\2062http://crl3.digicert.com/DigiCertTrusted
+164306129	crl3.digicert.com	\2520S\240Q\240O\206Mhttp://crl3.digicert.com/DigiCertTrusted
+164306214	crl4.digicert.com	l0S\240Q\240O\206Mhttp://crl4.digicert.com/DigiCertTrusted
+164306327	www.digicert.com	\006\001\005\005\007\002\001\026\033http://www.digicert.com/CPS0\201\224\006\010+\006\001\005\005\007\001
+164306387	ocsp.digicert.com	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0\134\006\010+\006\001\005\005\0070\002\206Pht
+164306425	cacerts.digicert.com	\006\001\005\005\0070\002\206Phttp://cacerts.digicert.com/DigiCertTrusted
+164307391	winscp.net	\000e\000r\241*\200(https://winscp.net/eng/docs/instal
+164309133	crl3.digicert.com	Q0O\240M\240K\206Ihttp://crl3.digicert.com/DigiCertTrusted
+164309239	ocsp.digicert.com0X	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0X\006\010+\006\001\005\005\0070\002\206Lhttp
+164309277	cacerts.digicert.com	\006\001\005\005\0070\002\206Lhttp://cacerts.digicert.com/DigiCertTrusted
+164310873	ocsp.digicert.com0A	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0A\006\010+\006\001\005\005\0070\002\2065http
+164310911	cacerts.digicert.com	\006\001\005\005\0070\002\2065http://cacerts.digicert.com/DigiCertTrusted
+164310983	crl3.digicert.com	:08\2406\2404\2062http://crl3.digicert.com/DigiCertTrusted
+164312565	ocsp.digicert.com0C	\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0C\006\010+\006\001\005\005\0070\002\2067http
+164312603	cacerts.digicert.com	\006\001\005\005\0070\002\2067http://cacerts.digicert.com/DigiCertAssured
+164312677	crl3.digicert.com	<0:\2408\2406\2064http://crl3.digicert.com/DigiCertAssured
+203163288-ZIP-86	schemas.microsoft.com	lns:wpc="http://schemas.microsoft.com/office/word/201
+203163288-ZIP-164	schemas.microsoft.com	mlns:mo="http://schemas.microsoft.com/office/mac/offi
+203163288-ZIP-232	schemas.openxmlformats.org	mlns:mc="http://schemas.openxmlformats.org/markup-compatib
+203163288-ZIP-397	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+203163288-ZIP-475	schemas.openxmlformats.org	xmlns:m="http://schemas.openxmlformats.org/officeDocument/
+203163288-ZIP-587	schemas.microsoft.com	ns:wp14="http://schemas.microsoft.com/office/word/201
+203163288-ZIP-666	schemas.openxmlformats.org	mlns:wp="http://schemas.openxmlformats.org/drawingml/2006/
+203163288-ZIP-797	schemas.openxmlformats.org	xmlns:w="http://schemas.openxmlformats.org/wordprocessingm
+203163288-ZIP-870	schemas.microsoft.com	lns:w14="http://schemas.microsoft.com/office/word/201
+203163288-ZIP-935	schemas.microsoft.com	lns:wpg="http://schemas.microsoft.com/office/word/201
+203163288-ZIP-1013	schemas.microsoft.com	lns:wpi="http://schemas.microsoft.com/office/word/201
+203163288-ZIP-1089	schemas.microsoft.com	lns:wne="http://schemas.microsoft.com/office/word/200
+203163288-ZIP-1154	schemas.microsoft.com	lns:wps="http://schemas.microsoft.com/office/word/201
+219940504-ZIP-86	schemas.microsoft.com	lns:wpc="http://schemas.microsoft.com/office/word/201
+219940504-ZIP-164	schemas.microsoft.com	mlns:mo="http://schemas.microsoft.com/office/mac/offi
+219940504-ZIP-232	schemas.openxmlformats.org	mlns:mc="http://schemas.openxmlformats.org/markup-compatib
+219940504-ZIP-397	schemas.openxmlformats.org	xmlns:r="http://schemas.openxmlformats.org/officeDocument/
+219940504-ZIP-475	schemas.openxmlformats.org	xmlns:m="http://schemas.openxmlformats.org/officeDocument/
+219940504-ZIP-587	schemas.microsoft.com	ns:wp14="http://schemas.microsoft.com/office/word/201
+219940504-ZIP-666	schemas.openxmlformats.org	mlns:wp="http://schemas.openxmlformats.org/drawingml/2006/
+219940504-ZIP-797	schemas.openxmlformats.org	xmlns:w="http://schemas.openxmlformats.org/wordprocessingm
+219940504-ZIP-870	schemas.microsoft.com	lns:w14="http://schemas.microsoft.com/office/word/201
+219940504-ZIP-935	schemas.microsoft.com	lns:wpg="http://schemas.microsoft.com/office/word/201
+219940504-ZIP-1013	schemas.microsoft.com	lns:wpi="http://schemas.microsoft.com/office/word/201
+219940504-ZIP-1089	schemas.microsoft.com	lns:wne="http://schemas.microsoft.com/office/word/200
+219940504-ZIP-1154	schemas.microsoft.com	lns:wps="http://schemas.microsoft.com/office/word/201

@@ -1,0 +1,221 @@
+# BANNER FILE NOT PROVIDED (-b option)
+# BULK_EXTRACTOR-Version: 2.1.1
+# Feature-Recorder: url
+# Filename: exhibit-a.dd
+# Feature-File-Version: 1.1
+34906112-ZIP-19	http://schemas.openxmlformats.org/officeDocument/2006/extended-properties	operties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>M
+34906288-ZIP-29	http://schemas.openxmlformats.org/package/2006/metadata/core-properties	rties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"><dc:creator xm
+34906288-ZIP-124	http://purl.org/dc/elements/1.1/	eator xmlns:dc="http://purl.org/dc/elements/1.1/">openpyxl</dc:c
+34906288-ZIP-211	http://purl.org/dc/terms/	 xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="htt
+34906288-ZIP-249	http://www.w3.org/2001/XMLSchema-instance	ms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="dcte
+34906288-ZIP-395	http://purl.org/dc/terms/	 xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="htt
+34906288-ZIP-433	http://www.w3.org/2001/XMLSchema-instance	ms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="dcte
+34908180-ZIP-18	http://schemas.openxmlformats.org/spreadsheetml/2006/main	orksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><outl
+34908987-ZIP-19	http://schemas.openxmlformats.org/spreadsheetml/2006/main	yleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count
+34909641-ZIP-22	http://schemas.openxmlformats.org/package/2006/relationships	ionships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship 
+34909641-ZIP-104	http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument	ationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/wor
+34909641-ZIP-244	http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties	ationship Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docPro
+34909641-ZIP-389	http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties	ationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docPro
+34909874-ZIP-17	http://schemas.openxmlformats.org/spreadsheetml/2006/main	workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><workbookPr/><
+34909874-ZIP-344	http://schemas.openxmlformats.org/officeDocument/2006/relationships	<sheet xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" name="Contacts
+34910228-ZIP-22	http://schemas.openxmlformats.org/package/2006/relationships	ionships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship 
+34910228-ZIP-104	http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet	ationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="/xl/wo
+34910228-ZIP-249	http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles	ationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles
+34910228-ZIP-376	http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme	ationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/
+34910457-ZIP-14	http://schemas.openxmlformats.org/package/2006/content-types	<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Exten
+34906579-ZIP-40	http://schemas.openxmlformats.org/drawingml/2006/main	:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office T
+51675136-ZIP-70	http://schemas.openxmlformats.org/package/2006/content-types	>\012<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Exten
+51675590-ZIP-78	http://schemas.openxmlformats.org/package/2006/relationships	ionships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship 
+51675590-ZIP-170	http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties	Id="rId3" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docPro
+51675590-ZIP-315	http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties	Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docPro
+51675590-ZIP-461	http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument	Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/d
+51675590-ZIP-603	http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail	Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail" Target="docPro
+51675879-ZIP-85	http://schemas.openxmlformats.org/package/2006/metadata/core-properties	rties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http
+51675879-ZIP-168	http://purl.org/dc/elements/1.1/	ties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms=
+51675879-ZIP-217	http://purl.org/dc/terms/	 xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype
+51675879-ZIP-260	http://purl.org/dc/dcmitype/	xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="htt
+51675879-ZIP-301	http://www.w3.org/2001/XMLSchema-instance	pe/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title/><dc
+51676287-ZIP-75	http://schemas.openxmlformats.org/officeDocument/2006/extended-properties	operties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http
+51676287-ZIP-160	http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes	ties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">\012  <Template>N
+51676824-ZIP-79	http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas	ment xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mo="http
+51676824-ZIP-157	http://schemas.microsoft.com/office/mac/office/2008/main	nvas" xmlns:mo="http://schemas.microsoft.com/office/mac/office/2008/main" xmlns:mc="http
+51676824-ZIP-225	http://schemas.openxmlformats.org/markup-compatibility/2006	main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:mv="urn:
+51676824-ZIP-390	http://schemas.openxmlformats.org/officeDocument/2006/relationships	ffice" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http:
+51676824-ZIP-468	http://schemas.openxmlformats.org/officeDocument/2006/math	ships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:s
+51676824-ZIP-580	http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing	ml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http
+51676824-ZIP-659	http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing	wing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn
+51676824-ZIP-790	http://schemas.openxmlformats.org/wordprocessingml/2006/main	:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="htt
+51676824-ZIP-863	http://schemas.microsoft.com/office/word/2010/wordml	ain" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wpg="htt
+51676824-ZIP-928	http://schemas.microsoft.com/office/word/2010/wordprocessingGroup	dml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="htt
+51676824-ZIP-1006	http://schemas.microsoft.com/office/word/2010/wordprocessingInk	oup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="htt
+51676824-ZIP-1082	http://schemas.microsoft.com/office/word/2006/wordml	Ink" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="htt
+51676824-ZIP-1147	http://schemas.microsoft.com/office/word/2010/wordprocessingShape	dml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="
+51678057-ZIP-78	http://schemas.openxmlformats.org/package/2006/relationships	ionships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship 
+51678057-ZIP-170	http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles	Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles
+51678057-ZIP-297	http://schemas.microsoft.com/office/2007/relationships/stylesWithEffects	Id="rId4" Type="http://schemas.microsoft.com/office/2007/relationships/stylesWithEffects" Target="styles
+51678057-ZIP-433	http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings	Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settin
+51678057-ZIP-564	http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings	Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings" Target="webSet
+51678057-ZIP-701	http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable	Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable" Target="fontTa
+51678057-ZIP-834	http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme	Id="rId8" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/
+51678057-ZIP-966	http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml	Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml" Target="../cus
+51678057-ZIP-1108	http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering	Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="number
+51704294-ZIP-78	http://schemas.openxmlformats.org/markup-compatibility/2006	tings xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:s
+51704294-ZIP-198	http://schemas.openxmlformats.org/officeDocument/2006/relationships	ffice" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http:
+51704294-ZIP-276	http://schemas.openxmlformats.org/officeDocument/2006/math	ships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:s
+51704294-ZIP-435	http://schemas.openxmlformats.org/wordprocessingml/2006/main	:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="htt
+51704294-ZIP-508	http://schemas.microsoft.com/office/word/2010/wordml	ain" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:sl="http
+51704294-ZIP-572	http://schemas.openxmlformats.org/schemaLibrary/2006/main	rdml" xmlns:sl="http://schemas.openxmlformats.org/schemaLibrary/2006/main" mc:Ignorable="
+51704294-ZIP-908	http://schemas.microsoft.com/office/word	ityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="14"/><w
+51704294-ZIP-1038	http://schemas.microsoft.com/office/word	ication" w:uri="http://schemas.microsoft.com/office/word" w:val="1"/><w:
+51704294-ZIP-1147	http://schemas.microsoft.com/office/word	eatures" w:uri="http://schemas.microsoft.com/office/word" w:val="1"/><w:
+51704294-ZIP-1256	http://schemas.microsoft.com/office/word	Indents" w:uri="http://schemas.microsoft.com/office/word" w:val="1"/></w
+51705300-ZIP-81	http://schemas.openxmlformats.org/markup-compatibility/2006	tings xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:r="http:
+51705300-ZIP-151	http://schemas.openxmlformats.org/officeDocument/2006/relationships	/2006" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w="http:
+51705300-ZIP-229	http://schemas.openxmlformats.org/wordprocessingml/2006/main	ships" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="htt
+51705300-ZIP-302	http://schemas.microsoft.com/office/word/2010/wordml	ain" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="
+51705606-ZIP-75	http://schemas.openxmlformats.org/markup-compatibility/2006	fonts xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:r="http:
+51705606-ZIP-145	http://schemas.openxmlformats.org/officeDocument/2006/relationships	/2006" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w="http:
+51705606-ZIP-223	http://schemas.openxmlformats.org/wordprocessingml/2006/main	ships" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="htt
+51705606-ZIP-296	http://schemas.microsoft.com/office/word/2010/wordml	ain" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="
+51708050-ZIP-76	http://schemas.openxmlformats.org/officeDocument/2006/bibliography	ources xmlns:b="http://schemas.openxmlformats.org/officeDocument/2006/bibliography" xmlns="http://
+51708050-ZIP-151	http://schemas.openxmlformats.org/officeDocument/2006/bibliography	ography" xmlns="http://schemas.openxmlformats.org/officeDocument/2006/bibliography" SelectedStyle=
+51708266-ZIP-78	http://schemas.openxmlformats.org/package/2006/relationships	ionships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship 
+51708266-ZIP-170	http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXmlProps	Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXmlProps" Target="itemPr
+51708515-ZIP-84	http://schemas.openxmlformats.org/officeDocument/2006/customXml	eItem xmlns:ds="http://schemas.openxmlformats.org/officeDocument/2006/customXml" ds:itemID="{EF
+51708515-ZIP-245	http://schemas.openxmlformats.org/officeDocument/2006/bibliography	hemaRef ds:uri="http://schemas.openxmlformats.org/officeDocument/2006/bibliography"/>\012  </ds:schem
+51708794-ZIP-80	http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas	ring xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mo="http
+51708794-ZIP-158	http://schemas.microsoft.com/office/mac/office/2008/main	nvas" xmlns:mo="http://schemas.microsoft.com/office/mac/office/2008/main" xmlns:mc="http
+51708794-ZIP-226	http://schemas.openxmlformats.org/markup-compatibility/2006	main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:mv="urn:
+51708794-ZIP-391	http://schemas.openxmlformats.org/officeDocument/2006/relationships	ffice" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http:
+51708794-ZIP-469	http://schemas.openxmlformats.org/officeDocument/2006/math	ships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:s
+51708794-ZIP-581	http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing	ml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http
+51708794-ZIP-660	http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing	wing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn
+51708794-ZIP-791	http://schemas.openxmlformats.org/wordprocessingml/2006/main	:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="htt
+51708794-ZIP-864	http://schemas.microsoft.com/office/word/2010/wordml	ain" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wpg="htt
+51708794-ZIP-929	http://schemas.microsoft.com/office/word/2010/wordprocessingGroup	dml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="htt
+51708794-ZIP-1007	http://schemas.microsoft.com/office/word/2010/wordprocessingInk	oup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="htt
+51708794-ZIP-1083	http://schemas.microsoft.com/office/word/2006/wordml	Ink" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="htt
+51708794-ZIP-1148	http://schemas.microsoft.com/office/word/2010/wordprocessingShape	dml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="
+51678421-ZIP-76	http://schemas.openxmlformats.org/markup-compatibility/2006	tyles xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:r="http:
+51678421-ZIP-146	http://schemas.openxmlformats.org/officeDocument/2006/relationships	/2006" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w="http:
+51678421-ZIP-224	http://schemas.openxmlformats.org/wordprocessingml/2006/main	ships" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="htt
+51678421-ZIP-297	http://schemas.microsoft.com/office/word/2010/wordml	ain" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="
+51690613-ZIP-77	http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas	yles xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mo="http
+51690613-ZIP-155	http://schemas.microsoft.com/office/mac/office/2008/main	nvas" xmlns:mo="http://schemas.microsoft.com/office/mac/office/2008/main" xmlns:mc="http
+51690613-ZIP-223	http://schemas.openxmlformats.org/markup-compatibility/2006	main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:mv="urn:
+51690613-ZIP-388	http://schemas.openxmlformats.org/officeDocument/2006/relationships	ffice" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http:
+51690613-ZIP-466	http://schemas.openxmlformats.org/officeDocument/2006/math	ships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:s
+51690613-ZIP-578	http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing	ml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http
+51690613-ZIP-657	http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing	wing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn
+51690613-ZIP-788	http://schemas.openxmlformats.org/wordprocessingml/2006/main	:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="htt
+51690613-ZIP-861	http://schemas.microsoft.com/office/word/2010/wordml	ain" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wpg="htt
+51690613-ZIP-926	http://schemas.microsoft.com/office/word/2010/wordprocessingGroup	dml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="htt
+51690613-ZIP-1004	http://schemas.microsoft.com/office/word/2010/wordprocessingInk	oup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="htt
+51690613-ZIP-1080	http://schemas.microsoft.com/office/word/2006/wordml	Ink" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="htt
+51690613-ZIP-1145	http://schemas.microsoft.com/office/word/2010/wordprocessingShape	dml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="
+51706265-ZIP-74	http://schemas.openxmlformats.org/drawingml/2006/main	:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office T
+137200391	https://www.chiark.greenend.org.uk/~sgtatham/putty/	0,0,0,0,0,0,0,0\000https://www.chiark.greenend.org.uk/~sgtatham/putty/\000host/\000:/\000012345
+137709586	http://schemas.microsoft.com/SMI/2005/WindowsSettings	         xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">\012       <dpiAw
+137709714	http://schemas.microsoft.com/SMI/2016/WindowsSettings	         xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">\012         PerM
+137719415	https://sectigo.com/CPS0	0%0#\006\010+\006\001\005\005\007\002\001\026\027https://sectigo.com/CPS0\010\006\006g\201\014\001\004\0010I\006\003U\035\037
+137719467	http://crl.sectigo.com/SectigoPublicCodeSigningCAR36.crl0y	\003U\035\037\004B0@0>\240<\240:\2068http://crl.sectigo.com/SectigoPublicCodeSigningCAR36.crl0y\006\010+\006\001\005\005\007\001\001\004m0k0D
+137719553	http://crt.sectigo.com/SectigoPublicCodeSigningCAR36.crt0#	0k0D\006\010+\006\001\005\005\0070\002\2068http://crt.sectigo.com/SectigoPublicCodeSigningCAR36.crt0#\006\010+\006\001\005\005\0070\001\206\027http
+137719623	http://ocsp.sectigo.com	rt0#\006\010+\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137720901	http://crl.sectigo.com/SectigoPublicCodeSigningRootR46.crl0	\003U\035\037\004D0B0@\240>\240<\206:http://crl.sectigo.com/SectigoPublicCodeSigningRootR46.crl0{\006\010+\006\001\005\005\007\001\001\004o0m0
+137720989	http://crt.sectigo.com/SectigoPublicCodeSigningRootR46.p7c0#	0m0F\006\010+\006\001\005\005\0070\002\206:http://crt.sectigo.com/SectigoPublicCodeSigningRootR46.p7c0#\006\010+\006\001\005\005\0070\001\206\027http
+137721061	http://ocsp.sectigo.com	7c0#\006\010+\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137722631	http://crl.comodoca.com/AAACertificateServices.crl04	\003U\035\037\004<0:08\2406\2404\2062http://crl.comodoca.com/AAACertificateServices.crl04\006\010+\006\001\005\005\007\001\001\004(0&0$
+137722711	http://ocsp.comodoca.com	0&0$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.comodoca.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137723707	http://crl.comodoca.com/AAACertificateServices.crl06	\003U\035\037\004t0r08\2406\2404\2062http://crl.comodoca.com/AAACertificateServices.crl06\2404\2402\2060http://crl
+137723765	http://crl.comodo.net/AAACertificateServices.crl0	ices.crl06\2404\2402\2060http://crl.comodo.net/AAACertificateServices.crl0\015\006\011*\206H\206\367\015\001\001\005\005\000\003\202
+137725150	http://crl.usertrust.com/USERTrustRSACertificationAuthority.crl0v	\003U\035\037\004I0G0E\240C\240A\206?http://crl.usertrust.com/USERTrustRSACertificationAuthority.crl0v\006\010+\006\001\005\005\007\001\001\004j0h0?
+137725243	http://crt.usertrust.com/USERTrustRSAAddTrustCA.crt0%	0h0?\006\010+\006\001\005\005\0070\002\2063http://crt.usertrust.com/USERTrustRSAAddTrustCA.crt0%\006\010+\006\001\005\005\0070\001\206\031http
+137725308	http://ocsp.usertrust.com	rt0%\006\010+\006\001\005\005\0070\001\206\031http://ocsp.usertrust.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137726897	https://sectigo.com/CPS0	0%0#\006\010+\006\001\005\005\007\002\001\026\027https://sectigo.com/CPS0\010\006\006g\201\014\001\004\0020D\006\003U\035\037
+137726949	http://crl.sectigo.com/SectigoRSATimeStampingCA.crl0t	\003U\035\037\004=0;09\2407\2405\2063http://crl.sectigo.com/SectigoRSATimeStampingCA.crl0t\006\010+\006\001\005\005\007\001\001\004h0f0?
+137727030	http://crt.sectigo.com/SectigoRSATimeStampingCA.crt0#	0f0?\006\010+\006\001\005\005\0070\002\2063http://crt.sectigo.com/SectigoRSATimeStampingCA.crt0#\006\010+\006\001\005\005\0070\001\206\027http
+137727095	http://ocsp.sectigo.com	rt0#\006\010+\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137727970	https://www.chiark.greenend.org.uk/~sgtatham/putty/0	UPDUP client\2415\2003https://www.chiark.greenend.org.uk/~sgtatham/putty/0\015\006\011*\206H\206\367\015\001\001\001\005\000\004\202
+137730574	https://sectigo.com/CPS0	0%0#\006\010+\006\001\005\005\007\002\001\026\027https://sectigo.com/CPS0\010\006\006g\201\014\001\004\0010I\006\003U\035\037
+137730626	http://crl.sectigo.com/SectigoPublicCodeSigningCAR36.crl0y	\003U\035\037\004B0@0>\240<\240:\2068http://crl.sectigo.com/SectigoPublicCodeSigningCAR36.crl0y\006\010+\006\001\005\005\007\001\001\004m0k0D
+137730712	http://crt.sectigo.com/SectigoPublicCodeSigningCAR36.crt0#	0k0D\006\010+\006\001\005\005\0070\002\2068http://crt.sectigo.com/SectigoPublicCodeSigningCAR36.crt0#\006\010+\006\001\005\005\0070\001\206\027http
+137730782	http://ocsp.sectigo.com	rt0#\006\010+\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137732060	http://crl.sectigo.com/SectigoPublicCodeSigningRootR46.crl0	\003U\035\037\004D0B0@\240>\240<\206:http://crl.sectigo.com/SectigoPublicCodeSigningRootR46.crl0{\006\010+\006\001\005\005\007\001\001\004o0m0
+137732148	http://crt.sectigo.com/SectigoPublicCodeSigningRootR46.p7c0#	0m0F\006\010+\006\001\005\005\0070\002\206:http://crt.sectigo.com/SectigoPublicCodeSigningRootR46.p7c0#\006\010+\006\001\005\005\0070\001\206\027http
+137732220	http://ocsp.sectigo.com	7c0#\006\010+\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137733790	http://crl.comodoca.com/AAACertificateServices.crl04	\003U\035\037\004<0:08\2406\2404\2062http://crl.comodoca.com/AAACertificateServices.crl04\006\010+\006\001\005\005\007\001\001\004(0&0$
+137733870	http://ocsp.comodoca.com	0&0$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.comodoca.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137734866	http://crl.comodoca.com/AAACertificateServices.crl06	\003U\035\037\004t0r08\2406\2404\2062http://crl.comodoca.com/AAACertificateServices.crl06\2404\2402\2060http://crl
+137734924	http://crl.comodo.net/AAACertificateServices.crl0	ices.crl06\2404\2402\2060http://crl.comodo.net/AAACertificateServices.crl0\015\006\011*\206H\206\367\015\001\001\005\005\000\003\202
+137736309	http://crl.usertrust.com/USERTrustRSACertificationAuthority.crl0v	\003U\035\037\004I0G0E\240C\240A\206?http://crl.usertrust.com/USERTrustRSACertificationAuthority.crl0v\006\010+\006\001\005\005\007\001\001\004j0h0?
+137736402	http://crt.usertrust.com/USERTrustRSAAddTrustCA.crt0%	0h0?\006\010+\006\001\005\005\0070\002\2063http://crt.usertrust.com/USERTrustRSAAddTrustCA.crt0%\006\010+\006\001\005\005\0070\001\206\031http
+137736467	http://ocsp.usertrust.com	rt0%\006\010+\006\001\005\005\0070\001\206\031http://ocsp.usertrust.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137738056	https://sectigo.com/CPS0	0%0#\006\010+\006\001\005\005\007\002\001\026\027https://sectigo.com/CPS0\010\006\006g\201\014\001\004\0020D\006\003U\035\037
+137738108	http://crl.sectigo.com/SectigoRSATimeStampingCA.crl0t	\003U\035\037\004=0;09\2407\2405\2063http://crl.sectigo.com/SectigoRSATimeStampingCA.crl0t\006\010+\006\001\005\005\007\001\001\004h0f0?
+137738189	http://crt.sectigo.com/SectigoRSATimeStampingCA.crt0#	0f0?\006\010+\006\001\005\005\0070\002\2063http://crt.sectigo.com/SectigoRSATimeStampingCA.crt0#\006\010+\006\001\005\005\0070\001\206\027http
+137738254	http://ocsp.sectigo.com	rt0#\006\010+\006\001\005\005\0070\001\206\027http://ocsp.sectigo.com0\015\006\011*\206H\206\367\015\001\001\014\005\000\003
+137739145	https://www.chiark.greenend.org.uk/~sgtatham/putty/0	UPDUP client\2415\2003https://www.chiark.greenend.org.uk/~sgtatham/putty/0\015\006\011*\206H\206\367\015\001\001\001\005\000\004\202
+153552840	https://jrsoftware.org/ishelp/index.php?topic=setupcmdline	e\000 \000v\000i\000s\000i\000t\000 \000h\000t\000t\000p\000s\000:\000/\000/\000j\000r\000s\000o\000f\000t\000w\000a\000r\000e\000.\000o\000r\000g\000/\000i\000s\000h\000e\000l\000p\000/\000i\000n\000d\000e\000x\000.\000p\000h\000p\000?\000t\000o\000p\000i\000c\000=\000s\000e\000t\000u\000p\000c\000m\000d\000l\000i\000n\000e\000\000\000\000\000S\000e\000t\000u\000p\000\000\000
+153693498	http://schemas.microsoft.com/SMI/2005/WindowsSettings	dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true</dpiAware
+164293903	http://ocsp.digicert.com0C	0k0$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0C\006\010+\006\001\005\005\0070\002\2067http
+164293941	http://cacerts.digicert.com/DigiCertAssuredIDRootCA.crt0E	om0C\006\010+\006\001\005\005\0070\002\2067http://cacerts.digicert.com/DigiCertAssuredIDRootCA.crt0E\006\003U\035\037\004>0<0:\2408\2406\206
+164294015	http://crl3.digicert.com/DigiCertAssuredIDRootCA.crl0	\003U\035\037\004>0<0:\2408\2406\2064http://crl3.digicert.com/DigiCertAssuredIDRootCA.crl0\021\006\003U\035 \004\0120\0100\006\006\004U\035
+164295350	http://ocsp.digicert.com0A	0i0$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0A\006\010+\006\001\005\005\0070\002\2065http
+164295388	http://cacerts.digicert.com/DigiCertTrustedRootG4.crt0C	om0A\006\010+\006\001\005\005\0070\002\2065http://cacerts.digicert.com/DigiCertTrustedRootG4.crt0C\006\003U\035\037\004<0:08\2406\2404\206
+164295460	http://crl3.digicert.com/DigiCertTrustedRootG4.crl0	\003U\035\037\004<0:08\2406\2404\2062http://crl3.digicert.com/DigiCertTrustedRootG4.crl0 \006\003U\035 \004\0310\0270\010\006\006g\201
+164297070	http://ocsp.digicert.com0A	0i0$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0A\006\010+\006\001\005\005\0070\002\2065http
+164297108	http://cacerts.digicert.com/DigiCertTrustedRootG4.crt0C	om0A\006\010+\006\001\005\005\0070\002\2065http://cacerts.digicert.com/DigiCertTrustedRootG4.crt0C\006\003U\035\037\004<0:08\2406\2404\206
+164297180	http://crl3.digicert.com/DigiCertTrustedRootG4.crl0	\003U\035\037\004<0:08\2406\2404\2062http://crl3.digicert.com/DigiCertTrustedRootG4.crl0\034\006\003U\035 \004\0250\0230\007\006\005g\201
+164298772	http://crl3.digicert.com/DigiCertTrustedG4RSA4096SHA256TimeStampingCA.crl0	\003U\035\037\004S0Q0O\240M\240K\206Ihttp://crl3.digicert.com/DigiCertTrustedG4RSA4096SHA256TimeStampingCA.crl0\201\220\006\010+\006\001\005\005\007\001\001\004\201\2030
+164298878	http://ocsp.digicert.com0X	\201\2000$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0X\006\010+\006\001\005\005\0070\002\206Lhttp
+164298916	http://cacerts.digicert.com/DigiCertTrustedG4RSA4096SHA256TimeStampingCA.crt0	om0X\006\010+\006\001\005\005\0070\002\206Lhttp://cacerts.digicert.com/DigiCertTrustedG4RSA4096SHA256TimeStampingCA.crt0\015\006\011*\206H\206\367\015\001\001\013\005\000\003\202
+164300584	http://crl3.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crl0S	\035\037\004\201\2550\201\2520S\240Q\240O\206Mhttp://crl3.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crl0S\240Q\240O\206Mhttp://crl
+164300669	http://crl4.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crl0=	1CA1.crl0S\240Q\240O\206Mhttp://crl4.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crl0=\006\003U\035 \00460402\006\005g\201\014
+164300782	http://www.digicert.com/CPS0	0)0'\006\010+\006\001\005\005\007\002\001\026\033http://www.digicert.com/CPS0\201\224\006\010+\006\001\005\005\007\001\001\004\201\2070
+164300842	http://ocsp.digicert.com	\201\2040$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0\134\006\010+\006\001\005\005\0070\002\206Pht
+164300880	http://cacerts.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crt0	om0\134\006\010+\006\001\005\005\0070\002\206Phttp://cacerts.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crt0\014\006\003U\035\023\001\001\377\004\0020\0000\015\006
+164301810	https://winscp.net/eng/docs/installation0	\000t\000a\000l\000l\000e\000r\241*\200(https://winscp.net/eng/docs/installation0\015\006\011*\206H\206\367\015\001\001\001\005\000\004\202
+164304340	http://ocsp.digicert.com0A	0i0$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0A\006\010+\006\001\005\005\0070\002\2065http
+164304378	http://cacerts.digicert.com/DigiCertTrustedRootG4.crt0C	om0A\006\010+\006\001\005\005\0070\002\2065http://cacerts.digicert.com/DigiCertTrustedRootG4.crt0C\006\003U\035\037\004<0:08\2406\2404\206
+164304450	http://crl3.digicert.com/DigiCertTrustedRootG4.crl0	\003U\035\037\004<0:08\2406\2404\2062http://crl3.digicert.com/DigiCertTrustedRootG4.crl0\034\006\003U\035 \004\0250\0230\007\006\005g\201
+164306122	http://crl3.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crl0S	\035\037\004\201\2550\201\2520S\240Q\240O\206Mhttp://crl3.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crl0S\240Q\240O\206Mhttp://crl
+164306207	http://crl4.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crl0=	1CA1.crl0S\240Q\240O\206Mhttp://crl4.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crl0=\006\003U\035 \00460402\006\005g\201\014
+164306320	http://www.digicert.com/CPS0	0)0'\006\010+\006\001\005\005\007\002\001\026\033http://www.digicert.com/CPS0\201\224\006\010+\006\001\005\005\007\001\001\004\201\2070
+164306380	http://ocsp.digicert.com	\201\2040$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0\134\006\010+\006\001\005\005\0070\002\206Pht
+164306418	http://cacerts.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crt0	om0\134\006\010+\006\001\005\005\0070\002\206Phttp://cacerts.digicert.com/DigiCertTrustedG4CodeSigningRSA4096SHA3842021CA1.crt0\014\006\003U\035\023\001\001\377\004\0020\0000\015\006
+164307383	https://winscp.net/eng/docs/installation0	\000t\000a\000l\000l\000e\000r\241*\200(https://winscp.net/eng/docs/installation0\015\006\011*\206H\206\367\015\001\001\001\005\000\004\202
+164309126	http://crl3.digicert.com/DigiCertTrustedG4RSA4096SHA256TimeStampingCA.crl0	\003U\035\037\004S0Q0O\240M\240K\206Ihttp://crl3.digicert.com/DigiCertTrustedG4RSA4096SHA256TimeStampingCA.crl0\201\220\006\010+\006\001\005\005\007\001\001\004\201\2030
+164309232	http://ocsp.digicert.com0X	\201\2000$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0X\006\010+\006\001\005\005\0070\002\206Lhttp
+164309270	http://cacerts.digicert.com/DigiCertTrustedG4RSA4096SHA256TimeStampingCA.crt0	om0X\006\010+\006\001\005\005\0070\002\206Lhttp://cacerts.digicert.com/DigiCertTrustedG4RSA4096SHA256TimeStampingCA.crt0\015\006\011*\206H\206\367\015\001\001\013\005\000\003\202
+164310866	http://ocsp.digicert.com0A	0i0$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0A\006\010+\006\001\005\005\0070\002\2065http
+164310904	http://cacerts.digicert.com/DigiCertTrustedRootG4.crt0C	om0A\006\010+\006\001\005\005\0070\002\2065http://cacerts.digicert.com/DigiCertTrustedRootG4.crt0C\006\003U\035\037\004<0:08\2406\2404\206
+164310976	http://crl3.digicert.com/DigiCertTrustedRootG4.crl0	\003U\035\037\004<0:08\2406\2404\2062http://crl3.digicert.com/DigiCertTrustedRootG4.crl0 \006\003U\035 \004\0310\0270\010\006\006g\201
+164312558	http://ocsp.digicert.com0C	0k0$\006\010+\006\001\005\005\0070\001\206\030http://ocsp.digicert.com0C\006\010+\006\001\005\005\0070\002\2067http
+164312596	http://cacerts.digicert.com/DigiCertAssuredIDRootCA.crt0E	om0C\006\010+\006\001\005\005\0070\002\2067http://cacerts.digicert.com/DigiCertAssuredIDRootCA.crt0E\006\003U\035\037\004>0<0:\2408\2406\206
+164312670	http://crl3.digicert.com/DigiCertAssuredIDRootCA.crl0	\003U\035\037\004>0<0:\2408\2406\2064http://crl3.digicert.com/DigiCertAssuredIDRootCA.crl0\021\006\003U\035 \004\0120\0100\006\006\004U\035
+203163288-ZIP-79	http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas	ment xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mo="http
+203163288-ZIP-157	http://schemas.microsoft.com/office/mac/office/2008/main	nvas" xmlns:mo="http://schemas.microsoft.com/office/mac/office/2008/main" xmlns:mc="http
+203163288-ZIP-225	http://schemas.openxmlformats.org/markup-compatibility/2006	main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:mv="urn:
+203163288-ZIP-390	http://schemas.openxmlformats.org/officeDocument/2006/relationships	ffice" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http:
+203163288-ZIP-468	http://schemas.openxmlformats.org/officeDocument/2006/math	ships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:s
+203163288-ZIP-580	http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing	ml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http
+203163288-ZIP-659	http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing	wing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn
+203163288-ZIP-790	http://schemas.openxmlformats.org/wordprocessingml/2006/main	:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="htt
+203163288-ZIP-863	http://schemas.microsoft.com/office/word/2010/wordml	ain" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wpg="htt
+203163288-ZIP-928	http://schemas.microsoft.com/office/word/2010/wordprocessingGroup	dml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="htt
+203163288-ZIP-1006	http://schemas.microsoft.com/office/word/2010/wordprocessingInk	oup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="htt
+203163288-ZIP-1082	http://schemas.microsoft.com/office/word/2006/wordml	Ink" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="htt
+203163288-ZIP-1147	http://schemas.microsoft.com/office/word/2010/wordprocessingShape	dml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="
+219940504-ZIP-79	http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas	ment xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mo="http
+219940504-ZIP-157	http://schemas.microsoft.com/office/mac/office/2008/main	nvas" xmlns:mo="http://schemas.microsoft.com/office/mac/office/2008/main" xmlns:mc="http
+219940504-ZIP-225	http://schemas.openxmlformats.org/markup-compatibility/2006	main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:mv="urn:
+219940504-ZIP-390	http://schemas.openxmlformats.org/officeDocument/2006/relationships	ffice" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http:
+219940504-ZIP-468	http://schemas.openxmlformats.org/officeDocument/2006/math	ships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:s
+219940504-ZIP-580	http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing	ml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http
+219940504-ZIP-659	http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing	wing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn
+219940504-ZIP-790	http://schemas.openxmlformats.org/wordprocessingml/2006/main	:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="htt
+219940504-ZIP-863	http://schemas.microsoft.com/office/word/2010/wordml	ain" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wpg="htt
+219940504-ZIP-928	http://schemas.microsoft.com/office/word/2010/wordprocessingGroup	dml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="htt
+219940504-ZIP-1006	http://schemas.microsoft.com/office/word/2010/wordprocessingInk	oup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="htt
+219940504-ZIP-1082	http://schemas.microsoft.com/office/word/2006/wordml	Ink" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="htt
+219940504-ZIP-1147	http://schemas.microsoft.com/office/word/2010/wordprocessingShape	dml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="

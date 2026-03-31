@@ -1,0 +1,114 @@
+<h1 id="csci-4623-digital-forensics">CSCI 4623 — Digital Forensics</h1>
+<h2 id="lab-homework-1">Lab Homework 1</h2>
+<p><strong>Exhibit:</strong> <code>exhibit-a.dd</code><br />
+<strong>Deliverable:</strong> Written forensic report (see Submission
+below)<br />
+<strong>Submission:</strong> via <code>gitlab.cs.uno.edu</code></p>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>A USB drive (Exhibit A) has been seized from a departing employee
+suspected of exfiltrating proprietary data. During the in-class lab you
+examined its NTFS surface and documented a number of anomalies. The
+investigation is not finished and your task is to complete it.</p>
+<hr />
+<h2 id="the-assignment">The Assignment</h2>
+<p>The lab established what is visible at the filesystem layer. Your job
+is to determine what lies beneath it, recover whatever can be recovered,
+and produce a report that tells the full story of this drive.</p>
+<p>You are not given a procedure. You are expected to use the tools and
+techniques from the course, and your own judgment, to decide what to
+examine, in what order, and how to interpret what you find.</p>
+<p>Some questions to guide your thinking, not your steps:</p>
+<ul>
+<li>The partition table accounts for part of this disk. What about the
+rest?</li>
+<li>You found a string in the pre-partition slack during the lab. Is it
+significant on its own, or does its significance depend on something
+else on the drive?</li>
+<li>The NTFS surface looked relatively clean. Does that mean it was
+clean?</li>
+</ul>
+<hr />
+<h2 id="report-requirements">Report Requirements</h2>
+<p>Your report has two required structural elements. Everything else is
+yours to organize.</p>
+<p><strong>Executive summary.</strong> Lead with a one-page summary
+written for a non-technical supervising investigator. No tool names, no
+byte offsets: state what the exhibit is, what you found, and what it
+means in plain language. A reader who gets no further than this page
+should understand the substance of the investigation.</p>
+<p><strong>Technical body.</strong> Document your examination of the
+exhibit in whatever depth and structure the evidence warrants. You
+decide what to examine, in what order, and how to present it. A
+competent forensic examiner reading your report should be able to verify
+every claim you make and reproduce every result you report.</p>
+<p>The technical body must not be a checklist, but a standard: account
+for the whole disk, not just the filesystem; ground every conclusion in
+specific evidence; and leave the reader with a clear picture of what
+this drive was used for.</p>
+<hr />
+<h2 id="on-the-approach">On the Approach</h2>
+<p>You will need to work below the filesystem layer. The tools and
+concepts relevant to this assignment have been covered in lecture and
+lab. If you find yourself uncertain about what to examine next, the
+evidence on the drive will suggest directions.</p>
+<p>All commands you run must appear in an appendix with enough context
+that someone else could reproduce your work from scratch using your
+report alone.</p>
+<hr />
+<h2 id="grading">Grading</h2>
+<p>Reports are graded on four dimensions, each accounting for 25% of
+your score:</p>
+<p><strong>Coverage</strong> — Did you find what is there to be found?
+Did you account for the whole disk?</p>
+<p><strong>Accuracy</strong> — Are your technical findings correct? Are
+hashes, offsets, and file contents reported accurately?</p>
+<p><strong>Reasoning</strong> — Do your conclusions follow from the
+evidence? Are claims bounded to what the artifacts actually support?</p>
+<p><strong>Communication</strong> — Is the report coherent? Would the
+executive summary make sense to someone with no forensics
+background?</p>
+<p>There are no points for following a particular procedure. There are
+points for finding things, correctly characterizing them, and explaining
+what they mean.</p>
+<hr />
+<h2 id="submission">Submission</h2>
+<p><strong>Remember that this work is part of your preparation to be a
+software engineering professional – every requirement counts and it will
+be counted!</strong></p>
+<ul>
+<li><em>You must strictly follow the requirements of this section to the
+letter.</em></li>
+<li>Your submission will be downloaded automatically from your code
+repo. Failure counts against you.</li>
+</ul>
+<h3 id="creating-a-workingsubmission-repo">Creating a working/submission
+repo</h3>
+<p>You are provided a structured reference repo. Sign on to <a
+href="https://gitlab.cs.uno.edu">gitlab.cs.uno.edu</a> using your UNO
+credentials and go to <a
+href="https://gitlab.cs.uno.edu/vroussev/4623s26-lab1">https://gitlab.cs.uno.edu/vroussev/4623s26-lab1</a>.
+Fork the repository into your namespace <code>&lt;yourlogin&gt;</code>
+and <strong>retain the <code>4623s26-lab1</code></strong> slug.</p>
+<p>This repo
+(<code>https://gitlab.cs.uno.edu/&lt;your_login&gt;/4623s26-lab1</code>)
+will be used to pull your final submission. Whatever report and
+supporting evidence you intend to submit, must be <em>git pushed</em> to
+this repo before the deadline.</p>
+<p><strong>Your repository is the ONLY acceptable submission mechanism –
+no email, <em>Canvas</em>, etc.</strong></p>
+<ul>
+<li>Once you have the fork, you can <em>git clone</em> the repo to
+<code>cyber-range.cs.uno.edu</code>, or wherever you choose to work on
+the assignment.</li>
+<li>Your report must be named
+<code>4623s26-lab1-report--&lt;your_login&gt;.md</code> and must be
+written in standard markdown.</li>
+<li>Place any files/data extracted from the in <code>/evidence</code>
+and any tool output in <code>/logs</code>.</li>
+<li>Every file you place in these two folders <strong>must</strong> have
+relevance to the case and <strong>must</strong> be referenced in the
+report.</li>
+<li>Do not commit temporary / cached / backup / version and other junk
+files to the repo. You <em>will</em> lose points.</li>
+</ul>

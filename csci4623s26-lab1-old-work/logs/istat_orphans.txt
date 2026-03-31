@@ -1,0 +1,152 @@
+======== ORPHAN INODE 16 ========
+MFT Entry Header Values:
+Entry: 16        Sequence: 16
+$LogFile Sequence Number: 0
+Not Allocated File
+Links: 0
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Hidden, System
+Owner ID: 0
+Security ID: 0  ()
+Created:	2026-03-16 10:10:47.000000000 (CDT)
+File Modified:	2026-03-16 10:10:47.000000000 (CDT)
+MFT Modified:	2026-03-16 10:10:47.000000000 (CDT)
+Accessed:	2026-03-16 10:10:47.000000000 (CDT)
+
+Attributes: 
+Type: $STANDARD_INFORMATION (16-0)   Name: N/A   Resident   size: 48
+
+======== ORPHAN INODE 17 ========
+MFT Entry Header Values:
+Entry: 17        Sequence: 17
+$LogFile Sequence Number: 0
+Not Allocated File
+Links: 0
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Hidden, System
+Owner ID: 0
+Security ID: 0  ()
+Created:	2026-03-16 10:10:47.000000000 (CDT)
+File Modified:	2026-03-16 10:10:47.000000000 (CDT)
+MFT Modified:	2026-03-16 10:10:47.000000000 (CDT)
+Accessed:	2026-03-16 10:10:47.000000000 (CDT)
+
+Attributes: 
+Type: $STANDARD_INFORMATION (16-0)   Name: N/A   Resident   size: 48
+
+======== ORPHAN INODE 18 ========
+MFT Entry Header Values:
+Entry: 18        Sequence: 18
+$LogFile Sequence Number: 0
+Not Allocated File
+Links: 0
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Hidden, System
+Owner ID: 0
+Security ID: 0  ()
+Created:	2026-03-16 10:10:47.000000000 (CDT)
+File Modified:	2026-03-16 10:10:47.000000000 (CDT)
+MFT Modified:	2026-03-16 10:10:47.000000000 (CDT)
+Accessed:	2026-03-16 10:10:47.000000000 (CDT)
+
+Attributes: 
+Type: $STANDARD_INFORMATION (16-0)   Name: N/A   Resident   size: 48
+
+======== ORPHAN INODE 19 ========
+MFT Entry Header Values:
+Entry: 19        Sequence: 19
+$LogFile Sequence Number: 0
+Not Allocated File
+Links: 0
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Hidden, System
+Owner ID: 0
+Security ID: 0  ()
+Created:	2026-03-16 10:10:47.000000000 (CDT)
+File Modified:	2026-03-16 10:10:47.000000000 (CDT)
+MFT Modified:	2026-03-16 10:10:47.000000000 (CDT)
+Accessed:	2026-03-16 10:10:47.000000000 (CDT)
+
+Attributes: 
+Type: $STANDARD_INFORMATION (16-0)   Name: N/A   Resident   size: 48
+
+======== ORPHAN INODE 20 ========
+MFT Entry Header Values:
+Entry: 20        Sequence: 20
+$LogFile Sequence Number: 0
+Not Allocated File
+Links: 0
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Hidden, System
+Owner ID: 0
+Security ID: 0  ()
+Created:	2026-03-16 10:10:47.000000000 (CDT)
+File Modified:	2026-03-16 10:10:47.000000000 (CDT)
+MFT Modified:	2026-03-16 10:10:47.000000000 (CDT)
+Accessed:	2026-03-16 10:10:47.000000000 (CDT)
+
+Attributes: 
+Type: $STANDARD_INFORMATION (16-0)   Name: N/A   Resident   size: 48
+
+======== ORPHAN INODE 21 ========
+MFT Entry Header Values:
+Entry: 21        Sequence: 21
+$LogFile Sequence Number: 0
+Not Allocated File
+Links: 0
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Hidden, System
+Owner ID: 0
+Security ID: 0  ()
+Created:	2026-03-16 10:10:47.000000000 (CDT)
+File Modified:	2026-03-16 10:10:47.000000000 (CDT)
+MFT Modified:	2026-03-16 10:10:47.000000000 (CDT)
+Accessed:	2026-03-16 10:10:47.000000000 (CDT)
+
+Attributes: 
+Type: $STANDARD_INFORMATION (16-0)   Name: N/A   Resident   size: 48
+
+======== ORPHAN INODE 22 ========
+MFT Entry Header Values:
+Entry: 22        Sequence: 22
+$LogFile Sequence Number: 0
+Not Allocated File
+Links: 0
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Hidden, System
+Owner ID: 0
+Security ID: 0  ()
+Created:	2026-03-16 10:10:47.000000000 (CDT)
+File Modified:	2026-03-16 10:10:47.000000000 (CDT)
+MFT Modified:	2026-03-16 10:10:47.000000000 (CDT)
+Accessed:	2026-03-16 10:10:47.000000000 (CDT)
+
+Attributes: 
+Type: $STANDARD_INFORMATION (16-0)   Name: N/A   Resident   size: 48
+
+======== ORPHAN INODE 23 ========
+MFT Entry Header Values:
+Entry: 23        Sequence: 23
+$LogFile Sequence Number: 0
+Not Allocated File
+Links: 0
+
+$STANDARD_INFORMATION Attribute Values:
+Flags: Hidden, System
+Owner ID: 0
+Security ID: 0  ()
+Created:	2026-03-16 10:10:47.000000000 (CDT)
+File Modified:	2026-03-16 10:10:47.000000000 (CDT)
+MFT Modified:	2026-03-16 10:10:47.000000000 (CDT)
+Accessed:	2026-03-16 10:10:47.000000000 (CDT)
+
+Attributes: 
+Type: $STANDARD_INFORMATION (16-0)   Name: N/A   Resident   size: 48
+

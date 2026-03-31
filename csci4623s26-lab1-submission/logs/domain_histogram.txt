@@ -1,0 +1,37 @@
+# BANNER FILE NOT PROVIDED (-b option)
+# BULK_EXTRACTOR-Version: 2.1.1
+# Feature-Recorder: domain
+# Filename: exhibit-a.dd
+# Histogram-File-Version: 1.1
+n=79	schemas.openxmlformats.org
+n=52	schemas.microsoft.com
+n=22	openssh.com
+n=10	cacerts.digicert.com
+n=10	crl3.digicert.com
+n=6	crl.sectigo.com
+n=6	crt.sectigo.com
+n=6	ocsp.sectigo.com
+n=6	purl.org
+n=5	putty.projects.tartarus.org
+n=4	crl.comodoca.com
+n=4	ocsp.digicert.com0A
+n=4	sectigo.com
+n=3	www.chiark.greenend.org.uk
+n=3	www.w3.org
+n=2	crl.comodo.net
+n=2	crl.usertrust.com
+n=2	crl4.digicert.com
+n=2	crt.usertrust.com
+n=2	ocsp.comodoca.com
+n=2	ocsp.digicert.com
+n=2	ocsp.digicert.com0C
+n=2	ocsp.digicert.com0X
+n=2	ocsp.usertrust.com
+n=2	winscp.net
+n=2	www.digicert.com
+n=1	192.168.1.0
+n=1	203.0.113.47
+n=1	libssh.org
+n=1	lysator.liu.se
+n=1	projects.tartarus.org
+n=1	ssh.com

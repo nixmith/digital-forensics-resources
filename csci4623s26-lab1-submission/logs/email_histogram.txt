@@ -1,0 +1,34 @@
+# BANNER FILE NOT PROVIDED (-b option)
+# BULK_EXTRACTOR-Version: 2.1.1
+# Feature-Recorder: email
+# Filename: exhibit-a.dd
+# Histogram-File-Version: 1.1
+n=3	sshconnection@putty.projects.tartarus.org
+n=1	aes128-gcm@openssh.com
+n=1	aes256-gcm@openssh.com
+n=1	auth-agent-req@openssh.com
+n=1	auth-agent@openssh.com
+n=1	chacha20-poly1305@openssh.com
+n=1	curve25519-sha256@libssh.org
+n=1	des-cbc@ssh.com
+n=1	ecdsa-sha2-nistp256-cert-v01@openssh.com
+n=1	ecdsa-sha2-nistp384-cert-v01@openssh.com
+n=1	ecdsa-sha2-nistp521-cert-v01@openssh.com
+n=1	hmac-md5-etm@openssh.com
+n=1	hmac-sha1-96-etm@openssh.com
+n=1	hmac-sha1-etm@openssh.com
+n=1	hmac-sha2-256-etm@openssh.com
+n=1	hmac-sha2-512-etm@openssh.com
+n=1	kex-strict-c-v00@openssh.com
+n=1	kex-strict-s-v00@openssh.com
+n=1	putty@projects.tartarus.org
+n=1	rijndael-cbc@lysator.liu.se
+n=1	rsa-sha2-256-cert-v01@openssh.com
+n=1	rsa-sha2-512-cert-v01@openssh.com
+n=1	simple@putty.projects.tartarus.org
+n=1	sntrup761x25519-sha512@openssh.com
+n=1	ssh-dss-cert-v01@openssh.com
+n=1	ssh-ed25519-cert-v01@openssh.com
+n=1	ssh-rsa-cert-v01@openssh.com
+n=1	winadj@putty.projects.tartarus.org
+n=1	zlib@openssh.com

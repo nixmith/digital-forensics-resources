@@ -1,0 +1,8 @@
+/etc/shadow
+old.speeding.turtle
+cold.amber.river
+quiet.stone.bridge
+fading.copper.lamp
+silent.iron.gate
+hollow.birch.crossing
+burning.slate.window
